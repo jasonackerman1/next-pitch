@@ -13,9 +13,19 @@ function trajectoryIcon(size = 22) {
   </svg>`;
 }
 
-function brandLockup() {
-  return `<span class="brand-lockup">${trajectoryIcon(20)}<span class="brand-word">NEXT PITCH</span></span>`;
+function brandLockup({ tappable } = {}) {
+  const inner = `${trajectoryIcon(20)}<span class="brand-word">NEXT PITCH</span>`;
+  // On home, triple-tapping the logo is a hidden entry point to the reset-all-data
+  // confirmation screen — an admin action Owen shouldn't be able to stumble into with
+  // a single accidental tap, but Jay needs a way to wipe his own test data before
+  // handing the iPad over. See handleAction's 'brand-tap' case.
+  return tappable
+    ? `<button type="button" class="brand-lockup brand-lockup-tap" data-action="brand-tap">${inner}</button>`
+    : `<span class="brand-lockup">${inner}</span>`;
 }
+
+let brandTapCount = 0;
+let brandTapTimer = null;
 
 let creds = loadCredentials();
 let gistState = loadCachedState();
@@ -289,7 +299,7 @@ function renderHome() {
     <div class="screen screen-home">
       <div class="screen-inner">
         <div class="home-header">
-          <h1 class="app-title">${brandLockup()}</h1>
+          <h1 class="app-title">${brandLockup({ tappable: true })}</h1>
           <button class="icon-link" data-action="view-reset-card">My Reset ›</button>
         </div>
         <div class="streak-row">
@@ -311,6 +321,51 @@ function renderHome() {
       </div>
     </div>
   `;
+}
+
+function renderConfirmReset() {
+  return `
+    <div class="screen screen-confirm-reset">
+      <div class="screen-inner">
+        <button class="back-link" data-action="cancel-reset">‹ Back</button>
+        <h1 class="onb-title">Reset Everything?</h1>
+        <p class="onb-body">This clears the saved reset routine and every day's history —
+          streak, check-ins, all of it — so the app is a clean slate. Do this right before
+          handing the iPad to Owen for the first time, since he'll be walked straight back
+          into onboarding to build his own routine.</p>
+        <p class="onb-body"><strong>This can't be undone.</strong></p>
+        <button class="btn btn-danger btn-block btn-large" data-action="confirm-reset" ${busy ? 'disabled' : ''}>${busy ? 'Resetting…' : 'Yes, Reset Everything'}</button>
+        <button class="btn btn-outline btn-block" data-action="cancel-reset">Cancel</button>
+        ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+async function resetAllData() {
+  busy = true;
+  setStatus('');
+  render();
+  try {
+    const fresh = emptyState();
+    const newState = await commitMutation(creds.token, creds.gistId, () => fresh);
+    gistState = newState;
+    saveCachedState(newState);
+    clearDraftDay();
+    draftDay = null;
+    checkinDraft = { practiced: null, practiceType: [], voiceFeedback: '' };
+    onboardingStep = 1;
+    onboardingDraft = { action: null, phrase: null, triggers: [] };
+    onboardingShowActionCustom = false;
+    onboardingShowPhraseCustom = false;
+    lastCompletedDay = null;
+    busy = false;
+    view = 'onboarding';
+  } catch (err) {
+    busy = false;
+    setStatus(err instanceof GistError ? err.message : String(err), true);
+  }
+  render();
 }
 
 function renderResetCardScreen() {
@@ -525,6 +580,7 @@ function render() {
   else if (view === 'day') html = renderDayStep();
   else if (view === 'resetCard') html = renderResetCardScreen();
   else if (view === 'daySummary') html = renderDaySummary();
+  else if (view === 'confirmReset') html = renderConfirmReset();
   else html = '<div class="screen"><div class="screen-inner"><p>Loading…</p></div></div>';
   root.innerHTML = html;
 }
@@ -584,6 +640,25 @@ function handleAction(action, value) {
     case 'view-reset-card':
       view = 'resetCard';
       break;
+    case 'brand-tap':
+      brandTapCount += 1;
+      clearTimeout(brandTapTimer);
+      if (brandTapCount >= 3) {
+        brandTapCount = 0;
+        setStatus('');
+        view = 'confirmReset';
+      } else {
+        brandTapTimer = setTimeout(() => { brandTapCount = 0; }, 1200);
+        return; // no visible change on tap 1/2 — nothing to re-render
+      }
+      break;
+    case 'cancel-reset':
+      setStatus('');
+      view = 'home';
+      break;
+    case 'confirm-reset':
+      resetAllData();
+      return;
     case 'go-home':
       view = 'home';
       setStatus('');
