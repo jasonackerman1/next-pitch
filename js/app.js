@@ -41,7 +41,7 @@ let onboardingDraft = { action: null, phrase: null, triggers: [] };
 let onboardingShowActionCustom = false;
 let onboardingShowPhraseCustom = false;
 
-let checkinDraft = { practiced: null, practiceType: [], voiceFeedback: '' };
+let checkinDraft = { practiced: null, practiceType: [], practiceTypeOther: '', voiceFeedback: '' };
 
 let lastCompletedDay = null; // for the daySummary screen
 
@@ -353,7 +353,7 @@ async function resetAllData() {
     saveCachedState(newState);
     clearDraftDay();
     draftDay = null;
-    checkinDraft = { practiced: null, practiceType: [], voiceFeedback: '' };
+    checkinDraft = { practiced: null, practiceType: [], practiceTypeOther: '', voiceFeedback: '' };
     onboardingStep = 1;
     onboardingDraft = { action: null, phrase: null, triggers: [] };
     onboardingShowActionCustom = false;
@@ -398,7 +398,7 @@ function startNewDay() {
     sentToPractice: false,
   };
   saveDraftDay(draftDay);
-  checkinDraft = { practiced: null, practiceType: [], voiceFeedback: '' };
+  checkinDraft = { practiced: null, practiceType: [], practiceTypeOther: '', voiceFeedback: '' };
   view = 'day';
   render();
 }
@@ -504,6 +504,9 @@ function dayStepCheckin() {
           <button class="chip ${checkinDraft.practiceType.includes(opt) ? 'chip-selected' : ''}" data-action="toggle-practice-type" data-value="${escapeHtml(opt)}">${escapeHtml(opt)}</button>
         `).join('')}
       </div>
+      ${checkinDraft.practiceType.includes('Something else') ? `
+        <input type="text" id="practice-other-input" class="text-input" placeholder="What did you work on?" value="${escapeHtml(checkinDraft.practiceTypeOther)}" />
+      ` : ''}
     ` : ''}
 
     ${checkinDraft.practiced !== null ? `
@@ -520,6 +523,12 @@ async function submitCheckin() {
   const textarea = document.getElementById('voice-feedback-input');
   const voiceFeedback = textarea ? textarea.value.trim() : checkinDraft.voiceFeedback.trim();
 
+  const otherInput = document.getElementById('practice-other-input');
+  const otherText = (otherInput ? otherInput.value : checkinDraft.practiceTypeOther).trim();
+  // Swap the literal "Something else" placeholder for what he actually typed, so the
+  // saved record is self-explanatory without needing a second field to cross-reference.
+  const practiceType = checkinDraft.practiceType.map((t) => (t === 'Something else' && otherText ? otherText : t));
+
   busy = true;
   setStatus('');
   render();
@@ -533,7 +542,7 @@ async function submitCheckin() {
     mechanicsVideoId: draftDay.teamPractice ? null : draftDay.mechanicsVideoId,
     resetRepCompleted: draftDay.resetRepCompleted,
     practiced: checkinDraft.practiced,
-    practiceType: checkinDraft.practiceType,
+    practiceType,
     voiceFeedback,
     completedAt: new Date().toISOString(),
   };
@@ -745,6 +754,14 @@ root.addEventListener('click', (e) => {
 
 root.addEventListener('submit', (e) => {
   if (e.target.id === 'connect-form') handleConnectSubmit(e);
+});
+
+// Keep typed text in sync with draft state as it's typed, not just read once at submit —
+// otherwise tapping a chip (which re-renders the whole screen) would wipe out anything
+// already typed in these fields, since a fresh render only knows about state, not the DOM.
+root.addEventListener('input', (e) => {
+  if (e.target.id === 'voice-feedback-input') checkinDraft.voiceFeedback = e.target.value;
+  else if (e.target.id === 'practice-other-input') checkinDraft.practiceTypeOther = e.target.value;
 });
 
 boot();
