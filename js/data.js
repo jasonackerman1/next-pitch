@@ -51,10 +51,24 @@ export const RESET_TRIGGER_OPTIONS = [
   { key: 'bad-call', label: 'After a bad pitch call' },
 ];
 
-export const PRACTICE_TYPE_OPTIONS = [
-  'Hitting off tee',
+// "What did you work on?" options — split by whether today was a self-directed
+// session at home or a team practice, since the two have completely different
+// activities available. Both are plain editable arrays — adjust freely as real
+// usage shows what actually needs to be on the list (the team list especially is
+// a first guess, not something Jay confirmed against how practices actually run).
+export const HOME_PRACTICE_TYPE_OPTIONS = [
+  'Hitting into a net',
   'Soft toss',
-  'Swings in mirror',
+  'Hitting off a tee',
+  'Bouncing off a bucket',
+  'Something else',
+];
+
+export const TEAM_PRACTICE_TYPE_OPTIONS = [
+  'Batting practice (indoor facility)',
+  'Live at-bats on the field',
+  'Fielding (grounders & pop-ups)',
+  'Base running / footwork',
   'Something else',
 ];
 

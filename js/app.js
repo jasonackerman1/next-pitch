@@ -1,6 +1,6 @@
 import { loadCredentials, saveCredentials, loadCachedState, saveCachedState, loadDraftDay, saveDraftDay, clearDraftDay } from './state.js';
 import { fetchState, commitMutation, seedState, GistError } from './gist.js';
-import { emptyState, getContentForDayIndex, RESET_ACTION_OPTIONS, RESET_PHRASE_OPTIONS, RESET_TRIGGER_OPTIONS, PRACTICE_TYPE_OPTIONS } from './data.js';
+import { emptyState, getContentForDayIndex, RESET_ACTION_OPTIONS, RESET_PHRASE_OPTIONS, RESET_TRIGGER_OPTIONS, HOME_PRACTICE_TYPE_OPTIONS, TEAM_PRACTICE_TYPE_OPTIONS } from './data.js';
 
 const root = document.getElementById('root');
 
@@ -314,7 +314,7 @@ function renderHome() {
         </div>
         <div class="day-card">
           <div class="day-card-label">Day ${dayNumber}</div>
-          <p class="day-card-body">Reset rep, two quick videos, then go practice.</p>
+          <p class="day-card-body">Team practice or on your own — let's check in.</p>
           <button class="btn btn-primary btn-block btn-large" data-action="start-day">Start Today</button>
         </div>
         ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}
@@ -391,6 +391,7 @@ function startNewDay() {
     mentalTitle: mental.title,
     mechanicsVideoId: mechanics.videoId,
     mechanicsTitle: mechanics.title,
+    teamPractice: null, // null = not yet answered; true skips straight to check-in
     resetRepCompleted: false,
     mentalWatched: false,
     mechanicsWatched: false,
@@ -403,6 +404,8 @@ function startNewDay() {
 }
 
 function currentDayStep() {
+  if (draftDay.teamPractice === null) return 'teamCheck';
+  if (draftDay.teamPractice === true) return 'checkin'; // coach already ran the session — straight to reflection
   if (!draftDay.resetRepCompleted) return 'resetRep';
   if (!draftDay.mentalWatched) return 'mental';
   if (!draftDay.mechanicsWatched) return 'mechanics';
@@ -413,7 +416,8 @@ function currentDayStep() {
 function renderDayStep() {
   const step = currentDayStep();
   let body;
-  if (step === 'resetRep') body = dayStepResetRep();
+  if (step === 'teamCheck') body = dayStepTeamCheck();
+  else if (step === 'resetRep') body = dayStepResetRep();
   else if (step === 'mental') body = dayStepVideo('mental');
   else if (step === 'mechanics') body = dayStepVideo('mechanics');
   else if (step === 'goPractice') body = dayStepGoPractice();
@@ -425,6 +429,23 @@ function renderDayStep() {
         <div class="day-step-label">Day ${draftDay.dayNumber}</div>
         ${body}
       </div>
+    </div>
+  `;
+}
+
+function dayStepTeamCheck() {
+  return `
+    <h1 class="onb-title">Team Practice Today?</h1>
+    <p class="onb-body">This changes what happens next.</p>
+    <div class="option-list">
+      <button class="option-card" data-action="team-practice-yes">
+        Yes — team practice
+        <span class="option-blurb">Skip straight to logging how it went.</span>
+      </button>
+      <button class="option-card" data-action="team-practice-no">
+        No — on my own today
+        <span class="option-blurb">Reset rep, videos, then go practice.</span>
+      </button>
     </div>
   `;
 }
@@ -463,19 +484,23 @@ function dayStepGoPractice() {
 }
 
 function dayStepCheckin() {
+  const isTeam = draftDay.teamPractice === true;
+  const practiceOptions = isTeam ? TEAM_PRACTICE_TYPE_OPTIONS : HOME_PRACTICE_TYPE_OPTIONS;
   return `
     <h1 class="onb-title">How'd it go?</h1>
 
-    <p class="checkin-question">Did you practice today?</p>
-    <div class="toggle-row">
-      <button class="btn ${checkinDraft.practiced === true ? 'btn-primary' : 'btn-outline'}" data-action="set-practiced" data-value="yes">Yes</button>
-      <button class="btn ${checkinDraft.practiced === false ? 'btn-primary' : 'btn-outline'}" data-action="set-practiced" data-value="no">No</button>
-    </div>
+    ${isTeam ? '' : `
+      <p class="checkin-question">Did you practice today?</p>
+      <div class="toggle-row">
+        <button class="btn ${checkinDraft.practiced === true ? 'btn-primary' : 'btn-outline'}" data-action="set-practiced" data-value="yes">Yes</button>
+        <button class="btn ${checkinDraft.practiced === false ? 'btn-primary' : 'btn-outline'}" data-action="set-practiced" data-value="no">No</button>
+      </div>
+    `}
 
     ${checkinDraft.practiced === true ? `
       <p class="checkin-question">What did you work on?</p>
       <div class="chip-row">
-        ${PRACTICE_TYPE_OPTIONS.map((opt) => `
+        ${practiceOptions.map((opt) => `
           <button class="chip ${checkinDraft.practiceType.includes(opt) ? 'chip-selected' : ''}" data-action="toggle-practice-type" data-value="${escapeHtml(opt)}">${escapeHtml(opt)}</button>
         `).join('')}
       </div>
@@ -501,8 +526,11 @@ async function submitCheckin() {
 
   const finishedDay = {
     dayNumber: draftDay.dayNumber,
-    mentalVideoId: draftDay.mentalVideoId,
-    mechanicsVideoId: draftDay.mechanicsVideoId,
+    teamPractice: draftDay.teamPractice,
+    // No video was actually shown on a team-practice day (skipped entirely) — record
+    // that accurately rather than logging an assigned-but-unwatched video ID.
+    mentalVideoId: draftDay.teamPractice ? null : draftDay.mentalVideoId,
+    mechanicsVideoId: draftDay.teamPractice ? null : draftDay.mechanicsVideoId,
     resetRepCompleted: draftDay.resetRepCompleted,
     practiced: checkinDraft.practiced,
     practiceType: checkinDraft.practiceType,
@@ -666,6 +694,15 @@ function handleAction(action, value) {
     case 'start-day':
       startNewDay();
       return;
+    case 'team-practice-yes':
+      draftDay.teamPractice = true;
+      saveDraftDay(draftDay);
+      checkinDraft.practiced = true; // implied by "yes, team practice" — no need to re-ask
+      break;
+    case 'team-practice-no':
+      draftDay.teamPractice = false;
+      saveDraftDay(draftDay);
+      break;
     case 'complete-reset-rep':
       draftDay.resetRepCompleted = true;
       saveDraftDay(draftDay);
