@@ -153,17 +153,21 @@ exercised in a test run).
 
 ## What Jay needs to do before this can run for real
 
-1. **Create the secret Gist.** Go to gist.github.com, add any one
-   placeholder file (GitHub requires at least one, e.g. `readme.md`
-   with any text), and click **"Create secret gist"** — not public.
-   Copy the Gist ID from the resulting URL
-   (`gist.github.com/jasonackerman1/`**`<this part>`**).
-2. **Create a personal access token** at github.com/settings/tokens
-   with just the `gist` scope (classic token is simplest).
-3. Open the app and enter the Gist ID + token on the one-time Connect
-   screen — the app will add its own `next-pitch-data.json` file to
-   that gist automatically on first connect (no need to hand-type
-   starter JSON).
+Full click-by-click steps are in `GIST_SETUP.md` at the repo root
+(written up 2026-08-20 after Jay asked for a saved, reusable version —
+he's done this before for Storm/Challenge but said it feels like
+starting over each time). Short version: create a secret Gist at
+gist.github.com (must use "Create secret gist," not public), create a
+classic personal access token at github.com/settings/tokens scoped to
+`gist` only, then paste both into the app's one-time Connect screen —
+it seeds its own `next-pitch-data.json` file into that gist automatically.
+
+**Explicitly decided against hardcoding either value into the source**
+(Jay asked directly, 2026-08-20) — this repo and its deployed JS are
+public, GitHub "secret" gists are readable by anyone who knows the ID
+with zero auth, and a hardcoded token would grant write access to every
+gist on the account. The Connect-screen-into-localStorage pattern is
+what keeps this app's data actually private.
 
 ## Not yet done / open questions for Jay
 
