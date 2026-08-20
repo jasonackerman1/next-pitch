@@ -4,34 +4,62 @@ import { emptyState, getContentForDayIndex, RESET_ACTION_OPTIONS, RESET_PHRASE_O
 
 const root = document.getElementById('root');
 
-// The brand mark: a dashed pitch trajectory arcing down to a ball. Used in the header
-// lockup wherever the app identifies itself. currentColor so it inherits text color.
-function trajectoryIcon(size = 22) {
-  return `<svg class="trajectory-icon" width="${size}" height="${size * 0.6}" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M8 12 Q 68 8 112 46" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 14"/>
-    <circle cx="112" cy="46" r="9" fill="currentColor"/>
+// The brand mark: crossed bats (team red) with a ball (team yellow) at the intersection —
+// a small crest rather than an illustrative "bat hitting ball" scene, which doesn't hold up
+// at small sizes. Colors are CSS custom properties, not hardcoded — this SVG is inserted
+// inline into the document (not as an <img>), so var(--accent) etc. resolve normally.
+function crossedBatsIcon(size = 28) {
+  return `<svg class="brand-mark" width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <line x1="24" y1="24" x2="76" y2="76" stroke="var(--accent)" stroke-width="11" stroke-linecap="round"/>
+    <line x1="76" y1="24" x2="24" y2="76" stroke="var(--accent)" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="24" cy="24" r="6.5" fill="var(--accent)"/>
+    <circle cx="76" cy="24" r="6.5" fill="var(--accent)"/>
+    <circle cx="50" cy="50" r="15" fill="var(--accent-2)"/>
+    <path d="M42 43 Q 50 48 42 57" stroke="var(--bg)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M58 43 Q 50 48 58 57" stroke="var(--bg)" stroke-width="2" fill="none" stroke-linecap="round"/>
   </svg>`;
 }
 
-function brandLockup({ tappable } = {}) {
-  const inner = `${trajectoryIcon(20)}<span class="brand-word">NEXT PITCH</span>`;
-  // On home, triple-tapping the logo is a hidden entry point to the reset-all-data
-  // confirmation screen — an admin action Owen shouldn't be able to stumble into with
-  // a single accidental tap, but Jay needs a way to wipe his own test data before
-  // handing the iPad over. See handleAction's 'brand-tap' case.
-  return tappable
-    ? `<button type="button" class="brand-lockup brand-lockup-tap" data-action="brand-tap">${inner}</button>`
-    : `<span class="brand-lockup">${inner}</span>`;
+// Persistent header on every screen — not just home — so the brand reads consistently
+// throughout instead of a small inline lockup that only showed up in a couple of places.
+// Triple-tapping it is still the hidden entry point to the reset-all-data confirmation
+// screen (see handleAction's 'brand-tap' case); it's disabled before a Gist is connected
+// since there's nothing to reset yet.
+function headerBar() {
+  return `
+    <header class="app-header">
+      <button type="button" class="brand-mark-tap" data-action="brand-tap" aria-label="Next Pitch">
+        ${crossedBatsIcon(30)}
+        <span class="brand-word">NEXT PITCH</span>
+      </button>
+    </header>
+  `;
 }
 
 let brandTapCount = 0;
 let brandTapTimer = null;
 
+let toastMessage = null;
+let toastTimer = null;
+
+function showToast(message) {
+  toastMessage = message;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastMessage = null;
+    render();
+  }, 2600);
+}
+
+function toastHtml() {
+  return toastMessage ? `<div class="toast">${escapeHtml(toastMessage)}</div>` : '';
+}
+
 let creds = loadCredentials();
 let gistState = loadCachedState();
 let draftDay = loadDraftDay();
 
-let view = 'loading'; // 'connect' | 'onboarding' | 'home' | 'day' | 'resetCard' | 'daySummary'
+let view = 'loading'; // 'connect' | 'onboarding' | 'home' | 'day' | 'confirmReset'
 let statusMessage = '';
 let statusIsError = false;
 let busy = false;
@@ -42,8 +70,6 @@ let onboardingShowActionCustom = false;
 let onboardingShowPhraseCustom = false;
 
 let checkinDraft = { practiced: null, practiceType: [], practiceTypeOther: '', voiceFeedback: '' };
-
-let lastCompletedDay = null; // for the daySummary screen
 
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -98,7 +124,6 @@ function renderConnectScreen() {
   return `
     <div class="screen screen-connect">
       <div class="screen-inner">
-        <h1 class="app-title">${brandLockup()}</h1>
         <p class="lede">One-time setup — connect the app to its private data store.</p>
         <form id="connect-form" class="connect-form">
           <label>Gist ID
@@ -174,8 +199,15 @@ function renderOnboarding() {
 
 function onboardingScreen1() {
   return `
-    <h1 class="onb-title">Let's build your reset</h1>
-    <p class="onb-body">Every player messes up. The best ones have a way to let it go fast so it doesn't ruin the next pitch. Let's build yours.</p>
+    <h1 class="onb-title">Welcome to Next Pitch</h1>
+    <p class="onb-body">This app is built around one idea: no matter what just happened —
+      good or bad — the only thing that matters is the next pitch.</p>
+    <p class="onb-body">Most days: a quick Reset Rep, two short videos (mental game, then
+      mechanics), then go practice on your own. Had team practice instead? You can skip
+      straight to logging how it went.</p>
+    <p class="onb-body">First, let's build your <strong>Reset Play</strong> — your own
+      routine for letting go of a strikeout, an error, or a bad call fast, so it doesn't
+      wreck your next pitch.</p>
     <button class="btn btn-primary btn-block" data-action="onboarding-next">Let's go</button>
   `;
 }
@@ -243,7 +275,7 @@ function resetCardHtml(routine) {
   const triggerLabels = routine.triggers.map((k) => RESET_TRIGGER_OPTIONS.find((o) => o.key === k)?.label || k);
   return `
     <div class="reset-card">
-      <div class="reset-card-label">YOUR ROUTINE</div>
+      <div class="reset-card-label">RESET PLAY</div>
       <div class="reset-card-row"><span class="reset-card-key">Do</span><span class="reset-card-value">${escapeHtml(routine.action)}</span></div>
       <div class="reset-card-row"><span class="reset-card-key">Say</span><span class="reset-card-value">"${escapeHtml(routine.phrase)}"</span></div>
       <div class="reset-card-anchor">Next Pitch</div>
@@ -255,10 +287,10 @@ function resetCardHtml(routine) {
 function onboardingScreen5() {
   return `
     <button class="back-link" data-action="onboarding-back">‹ Back</button>
-    <h1 class="onb-title">This is your reset</h1>
+    <h1 class="onb-title">This is your Reset Play</h1>
     ${resetCardHtml(onboardingDraft)}
     <p class="onb-body">You'll do a quick rep of this every day before you go practice.</p>
-    <button class="btn btn-primary btn-block" data-action="save-reset-routine" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : 'This is my reset!'}</button>
+    <button class="btn btn-primary btn-block" data-action="save-reset-routine" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : 'This is my Reset Play!'}</button>
     ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}
   `;
 }
@@ -291,17 +323,54 @@ async function saveResetRoutine() {
 
 // ---------- home ----------
 
+/** Total days, team-vs-solo split, and a frequency count of every "what did you work on?"
+ *  answer ever given (home + team options + typed "Something else" text all mixed into one
+ *  list — they're just strings, and a combined view is still meaningful without needing two
+ *  separate breakdowns on an already-busy home screen). */
+function computeStats(days) {
+  const totalDays = days.length;
+  const teamCount = days.filter((d) => d.teamPractice === true).length;
+  const soloCount = totalDays - teamCount;
+  const counts = {};
+  for (const d of days) {
+    for (const t of d.practiceType || []) {
+      counts[t] = (counts[t] || 0) + 1;
+    }
+  }
+  const breakdown = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  return { totalDays, teamCount, soloCount, breakdown };
+}
+
+function practiceBreakdownHtml(stats) {
+  if (stats.breakdown.length === 0) {
+    return `
+      <div class="section-title">Practice Breakdown</div>
+      <p class="onb-body">Log a few days and your most-worked-on drills will show up here.</p>
+    `;
+  }
+  const maxCount = stats.breakdown[0][1];
+  return `
+    <div class="section-title">Practice Breakdown</div>
+    <div class="bar-list">
+      ${stats.breakdown.map(([label, count]) => `
+        <div class="bar-row">
+          <span class="bar-label">${escapeHtml(label)}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round((count / maxCount) * 100)}%"></div></div>
+          <span class="bar-count">${count}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderHome() {
   const streak = gistState.currentStreak || 0;
   const longest = gistState.longestStreak || 0;
   const dayNumber = gistState.days.length + 1;
+  const stats = computeStats(gistState.days);
   return `
     <div class="screen screen-home">
       <div class="screen-inner">
-        <div class="home-header">
-          <h1 class="app-title">${brandLockup({ tappable: true })}</h1>
-          <button class="icon-link" data-action="view-reset-card">My Reset ›</button>
-        </div>
         <div class="streak-row">
           <div class="streak-block">
             <div class="streak-number">${streak}</div>
@@ -312,11 +381,28 @@ function renderHome() {
             <div class="streak-label">best streak</div>
           </div>
         </div>
+
+        <div class="mini-stats-row">
+          <div class="mini-stat"><span class="mini-stat-num">${stats.totalDays}</span><span class="mini-stat-label">days logged</span></div>
+          <div class="mini-stat"><span class="mini-stat-num">${stats.teamCount}</span><span class="mini-stat-label">team</span></div>
+          <div class="mini-stat"><span class="mini-stat-num">${stats.soloCount}</span><span class="mini-stat-label">solo</span></div>
+        </div>
+
         <div class="day-card">
           <div class="day-card-label">Day ${dayNumber}</div>
           <p class="day-card-body">Team practice or on your own — let's check in.</p>
           <button class="btn btn-primary btn-block btn-large" data-action="start-day">Start Today</button>
         </div>
+
+        <div class="section">
+          <div class="section-title">Your Reset Play</div>
+          ${resetCardHtml(gistState.resetRoutine)}
+        </div>
+
+        <div class="section">
+          ${practiceBreakdownHtml(stats)}
+        </div>
+
         ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}
       </div>
     </div>
@@ -329,10 +415,10 @@ function renderConfirmReset() {
       <div class="screen-inner">
         <button class="back-link" data-action="cancel-reset">‹ Back</button>
         <h1 class="onb-title">Reset Everything?</h1>
-        <p class="onb-body">This clears the saved reset routine and every day's history —
+        <p class="onb-body">This clears the saved Reset Play and every day's history —
           streak, check-ins, all of it — so the app is a clean slate. Do this right before
           handing the iPad to Owen for the first time, since he'll be walked straight back
-          into onboarding to build his own routine.</p>
+          into onboarding to build his own Reset Play.</p>
         <p class="onb-body"><strong>This can't be undone.</strong></p>
         <button class="btn btn-danger btn-block btn-large" data-action="confirm-reset" ${busy ? 'disabled' : ''}>${busy ? 'Resetting…' : 'Yes, Reset Everything'}</button>
         <button class="btn btn-outline btn-block" data-action="cancel-reset">Cancel</button>
@@ -358,7 +444,6 @@ async function resetAllData() {
     onboardingDraft = { action: null, phrase: null, triggers: [] };
     onboardingShowActionCustom = false;
     onboardingShowPhraseCustom = false;
-    lastCompletedDay = null;
     busy = false;
     view = 'onboarding';
   } catch (err) {
@@ -366,18 +451,6 @@ async function resetAllData() {
     setStatus(err instanceof GistError ? err.message : String(err), true);
   }
   render();
-}
-
-function renderResetCardScreen() {
-  return `
-    <div class="screen screen-reset-card">
-      <div class="screen-inner">
-        <button class="back-link" data-action="go-home">‹ Back</button>
-        <h1 class="onb-title">Your Reset</h1>
-        ${resetCardHtml(gistState.resetRoutine)}
-      </div>
-    </div>
-  `;
 }
 
 // ---------- daily day flow ----------
@@ -444,7 +517,7 @@ function dayStepTeamCheck() {
       </button>
       <button class="option-card" data-action="team-practice-no">
         No — on my own today
-        <span class="option-blurb">Reset rep, videos, then go practice.</span>
+        <span class="option-blurb">Reset Rep, videos, then go practice.</span>
       </button>
     </div>
   `;
@@ -453,7 +526,7 @@ function dayStepTeamCheck() {
 function dayStepResetRep() {
   return `
     <h1 class="onb-title">Reset Rep</h1>
-    <p class="onb-body">Run through your routine once before you head out.</p>
+    <p class="onb-body">Run through your Reset Play once before you head out.</p>
     ${resetCardHtml(gistState.resetRoutine)}
     <button class="btn btn-primary btn-block btn-large" data-action="complete-reset-rep">Done — I did my reset rep</button>
   `;
@@ -557,11 +630,14 @@ async function submitCheckin() {
     });
     gistState = newState;
     saveCachedState(newState);
-    lastCompletedDay = { ...finishedDay, currentStreak: newState.currentStreak, longestStreak: newState.longestStreak };
     clearDraftDay();
     draftDay = null;
     busy = false;
-    view = 'daySummary';
+    view = 'home';
+    // No separate "saved!" screen — there's nothing left to do once check-in is submitted,
+    // so land straight back on home. A brief toast keeps the "Next Pitch" payoff moment
+    // without adding a tap Jay has to make just to get back to where he already wanted to be.
+    showToast(`Day ${finishedDay.dayNumber} logged — Next Pitch.`);
   } catch (err) {
     busy = false;
     setStatus(err instanceof GistError ? err.message : String(err), true);
@@ -590,23 +666,6 @@ function nextStreak(state, newCompletedAt) {
   return { streak, longest };
 }
 
-function renderDaySummary() {
-  const d = lastCompletedDay;
-  return `
-    <div class="screen screen-summary">
-      <div class="screen-inner">
-        <h1 class="onb-title summary-anchor">${trajectoryIcon(28)}<span>Next Pitch.</span></h1>
-        <p class="onb-body">Day ${d.dayNumber} complete. Whatever happened today, that's what matters now.</p>
-        <div class="summary-card">
-          <div class="streak-number">${d.currentStreak}</div>
-          <div class="streak-label">day streak</div>
-        </div>
-        <button class="btn btn-primary btn-block btn-large" data-action="go-home">Back to Home</button>
-      </div>
-    </div>
-  `;
-}
-
 // ---------- render dispatch ----------
 
 function render() {
@@ -615,11 +674,9 @@ function render() {
   else if (view === 'onboarding') html = renderOnboarding();
   else if (view === 'home') html = renderHome();
   else if (view === 'day') html = renderDayStep();
-  else if (view === 'resetCard') html = renderResetCardScreen();
-  else if (view === 'daySummary') html = renderDaySummary();
   else if (view === 'confirmReset') html = renderConfirmReset();
   else html = '<div class="screen"><div class="screen-inner"><p>Loading…</p></div></div>';
-  root.innerHTML = html;
+  root.innerHTML = headerBar() + html + toastHtml();
 }
 
 // ---------- action dispatch ----------
@@ -674,10 +731,8 @@ function handleAction(action, value) {
     case 'save-reset-routine':
       saveResetRoutine();
       return;
-    case 'view-reset-card':
-      view = 'resetCard';
-      break;
     case 'brand-tap':
+      if (!creds) return; // nothing to reset before a Gist is even connected
       brandTapCount += 1;
       clearTimeout(brandTapTimer);
       if (brandTapCount >= 3) {
