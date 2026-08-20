@@ -169,6 +169,21 @@ with zero auth, and a hardcoded token would grant write access to every
 gist on the account. The Connect-screen-into-localStorage pattern is
 what keeps this app's data actually private.
 
+## Team practice vs. solo practice (added after Jay's first real test pass)
+
+Starting a day now asks first: "Team practice today?" — Yes skips the reset rep and both
+videos entirely (the coach already ran the session) and goes straight to a reflection-only
+check-in with a team-specific "what did you work on?" list (`TEAM_PRACTICE_TYPE_OPTIONS` in
+`js/data.js`); No proceeds through the original reset-rep → mental video → mechanics video →
+go-practice → check-in flow with a separate home-specific list
+(`HOME_PRACTICE_TYPE_OPTIONS`). The "did you practice today?" yes/no question is skipped
+entirely on the team path (redundant — already implied) but kept on the solo path (still
+meaningful, since saying "not team practice" doesn't guarantee he actually went and hit off
+the tee). Each day record now stores `teamPractice: true/false`, and video IDs are recorded
+as `null` on team-practice days since no video was actually shown. **The team option list
+is a first guess** (Jay isn't the coach and said as much) — expect it to need real edits
+once you see how practices actually run; it's a plain array in `js/data.js`, trivial to change.
+
 ## Not yet done / open questions for Jay
 
 - The video content set is used exactly as the spec's Day 1–8 tables
