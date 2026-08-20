@@ -1,55 +1,104 @@
-# Owen's Hitting App — Project Status
+# Next Pitch — Project Status
 
-**Status: Phase 1 built, smoke-tested, committed, pushed, and live on
-GitHub Pages. Not yet connected to a real Gist, not yet opened on
-Owen's iPad.**
+**Status: Phase 1 built, rebranded, smoke-tested, committed, pushed, and
+live on GitHub Pages. Not yet connected to a real Gist, not yet opened
+on Owen's iPad.**
 
 Personal project (not a Konica Minolta playbook) — a single-user iPad PWA
-for Owen's daily hitting practice accountability. Repo:
-`/Users/jackerman/Documents/next-pitch`, pushed to
+for Owen's daily hitting practice accountability, branded **Next Pitch**.
+Repo: `/Users/jackerman/Documents/next-pitch`, pushed to
 `github.com/jasonackerman1/next-pitch` (public code repo — no personal
 data lives here, that's all in the secret Gist once Jay creates it).
-Live at **https://jasonackerman1.github.io/next-pitch/** — confirmed
-serving via a direct curl of the deployed page, commit `cc78e73`.
+Live at **https://jasonackerman1.github.io/next-pitch/**.
 
-Full requirements: `owen-hitting-app-spec.md` at the repo root — that's
-the source of truth for scope, re-read it before making scope calls.
+Full requirements: `owen-hitting-app-spec.md` at the repo root (original
+filename kept for traceability to the original ask) — that's the source
+of truth for scope, re-read it before making scope calls. The name
+**"Next Pitch"** and the full visual identity below were decided in a
+later session, after the spec — not in that file.
+
+## Brand identity (added after the initial build)
+
+- **Name: Next Pitch.** Core idea: no matter what just happened — good or
+  bad — the only thing that matters is the next pitch. This is meant to
+  run through the whole app, not just sit at the top as a title.
+- **Visual direction:** clean, simple, mature — a real tool Owen can keep
+  using as he gets older, not a kid-app he'll outgrow. No emoji anywhere
+  in the UI (there were several in the original build — 🔥🎉🏃⚾🤚💬➡️ — all
+  removed in the rebrand pass).
+- **Palette — 2 colors, deliberately tight:** near-black navy background
+  (`--bg: #0b0f16`) + one warm amber-orange accent (`--accent: #e8823f`),
+  plus neutral text/border grays. The old build's separate blue/green
+  colors for mental-vs-mechanics videos were dropped — everything shares
+  the one accent now, differentiated by label text only, not color.
+  Cards are flat single-color surfaces, not gradients — reads calmer.
+- **Logo/icon mark:** a dashed arc trajectory ending in a solid ball —
+  a literal pitch in flight. Built as an inline SVG helper
+  (`trajectoryIcon()` in `js/app.js`) used in the header lockup
+  everywhere the app identifies itself, and as the app icon
+  (`icons/icon-180.png` / `icon-512.png`, regenerated via PIL with a
+  quadratic-bezier-sampled dashed line + a filled circle — same math,
+  separate implementation from the SVG since PIL can't render SVG).
+- **"Next Pitch" language woven into the flow, not just the title:**
+  - Reset card: the fixed third line ("move on to the next pitch," from
+    the original spec's card format) is now a standalone accent-colored
+    badge reading "NEXT PITCH" — the resolving payoff of the card,
+    visually distinct from the two personal-choice lines above it (his
+    chosen action, his chosen cue phrase).
+  - Day-summary screen (the moment right after check-in submit — the
+    most natural place for the payoff line): headline is literally
+    "Next Pitch." followed by "Day N complete. Whatever happened today,
+    that's what matters now." This is the one spot that most directly
+    embodies the name's whole premise.
+  - Home header and the Connect screen both use the same brand lockup
+    (icon + "NEXT PITCH" wordmark) instead of a plain text title.
+
+## Voice check-in — simplified, no longer a custom feature
+
+**Removed `js/speech.js` (Web Speech API wrapper) entirely.** Jay
+clarified: Owen's on an iPad, Jay's on an iPhone, and Apple's own
+keyboard already has a dictation mic built in — there's no reason for
+the app to build its own speech-to-text. The check-in step is now just
+a plain, open-ended `<textarea>` with no character limit; Owen taps in
+and uses his keyboard's mic if he wants to talk instead of type. This
+removed a whole real-device risk (Web Speech API inside an installed
+PWA has a history of being flaky on iOS) — nothing left to test there.
 
 ## Architecture
 
 Plain HTML/CSS/vanilla JS (ES modules), no build step, no framework —
 same pattern as the Storm and Challenge fantasy apps. GitHub Gist as the
 sole data store (`js/gist.js`, adapted directly from the Challenge app's
-race-safe fetch→mutate→write→confirm cycle). PWA shell (`manifest.json`
-+ `sw.js`, network-first for the app shell so a redeploy always shows up,
-following Storm's proven service-worker pattern) for installability and
-offline access to the app shell/data — video playback itself still needs
-a live connection (YouTube iframe embeds).
+race-safe fetch→mutate→write→confirm cycle, data file named
+`next-pitch-data.json`). PWA shell (`manifest.json` + `sw.js`,
+network-first for the app shell so a redeploy always shows up,
+following Storm's proven service-worker pattern, cache name
+`next-pitch-cache-v1`) for installability and offline access to the app
+shell/data — video playback itself still needs a live connection
+(YouTube iframe embeds).
 
 No login/identity system (single user, per spec) — instead a one-time
 "Connect" screen where Jay enters the Gist ID + a personal access token,
-saved to `localStorage` on Owen's iPad only.
+saved to `localStorage` on Owen's iPad only (keys prefixed `next-pitch:`).
 
 ### Files
 - `index.html` — shell, loads `js/app.js` as a module, registers `sw.js`
-- `css/style.css` — dark navy/orange theme, mobile-first, big tap targets
-- `js/app.js` — all views + the daily-loop state machine
+- `css/style.css` — dark navy/amber theme, flat surfaces, mobile-first, big tap targets
+- `js/app.js` — all views, the daily-loop state machine, the `trajectoryIcon()`/`brandLockup()` helpers
 - `js/gist.js` — Gist read/write, race-safe mutation helper
 - `js/state.js` — localStorage helpers (credentials, cached state, in-progress day)
 - `js/data.js` — the 8-day mental/mechanics video content set + onboarding option lists
-- `js/speech.js` — Web Speech API wrapper for the voice check-in, with a plain-textarea fallback
 - `manifest.json` / `sw.js` — PWA install + offline shell
-- `icons/` — placeholder baseball icon (PIL-generated, not a real Owen/team asset — swap anytime)
+- `icons/` — trajectory-arc app icon (PIL-generated, matches the in-app SVG mark)
 
 ### Data model
 Matches the spec's PART 3 exactly: `{ resetRoutine, days: [...], currentStreak, longestStreak }`,
-stored as a file named `owen-hitting-data.json` inside the Gist.
+stored as `next-pitch-data.json` inside the Gist.
 
 ### Content sequencing
 `getContentForDayIndex()` in `js/data.js` cycles through the 8 mental +
 8 mechanics videos by `state.days.length % 8` — day 9 reuses day 1's
-videos, etc. This is a pure content-set wraparound, unrelated to the
-streak.
+videos, etc. Pure content-set wraparound, unrelated to the streak.
 
 ### Streak vs. day-number (an explicit design decision, not in the spec verbatim)
 The spec says the day *sequence* isn't tied to calendar dates ("if he
@@ -71,21 +120,12 @@ check-in, that day's reset-rep/video progress is never recorded to the
 Gist at all. Acceptable trade-off for a phase-1/demo build — flag if
 real usage shows this needs to change.
 
-### Voice check-in
-Web Speech API (`webkitSpeechRecognition`) with live interim transcript
-shown in the textarea as Owen talks; falls back to a plain textarea (no
-mic button at all) when the API isn't available. **Not yet confirmed on
-a real iPad** — Web Speech API support inside an installed/standalone
-PWA (vs. a normal Safari tab) has been flaky on other iOS versions in
-the past for similar builds; needs a real-device check before relying
-on it for the demo.
-
 ## Verification so far
 
 Headless Chromium + Playwright, mocked at the network layer (a fake
 in-memory Gist — no real GitHub calls), removed from the repo after each
 test round per the usual convention. Covered, all passing with zero
-console/page errors:
+console/page errors, both before and after the rebrand pass:
 - Connect screen renders; a bad-credentials attempt surfaces the real
   GitHub error message without crashing
 - Full onboarding (all 5 screens, including "select all" triggers) →
@@ -100,9 +140,14 @@ console/page errors:
 - A 3-calendar-day gap between completions resets the streak to 1 while
   preserving `longestStreak`; the content index correctly advances to
   video #2 in the set regardless of the gap
+- Screenshotted every key screen at a 390×844 mobile viewport after the
+  rebrand to sanity-check the new visual identity directly, not just
+  read the CSS — caught the small in-badge trajectory icon reading as a
+  muddy squiggle at 16px and simplified that one spot to text-only.
 
-**Not yet tested:** a real Gist (only mocked so far), a real iPad/Safari
-(mic support, install-to-home-screen, viewport sizing), the "Something
+**Not yet tested:** a real Gist (only mocked so far), a real
+iPad/Safari (install-to-home-screen, viewport sizing — no mic testing
+needed anymore since that's the OS keyboard's job now), the "Something
 else"/"Write my own" custom-text onboarding paths (built, not yet
 exercised in a test run).
 
@@ -116,7 +161,7 @@ exercised in a test run).
 2. **Create a personal access token** at github.com/settings/tokens
    with just the `gist` scope (classic token is simplest).
 3. Open the app and enter the Gist ID + token on the one-time Connect
-   screen — the app will add its own `owen-hitting-data.json` file to
+   screen — the app will add its own `next-pitch-data.json` file to
    that gist automatically on first connect (no need to hand-type
    starter JSON).
 
@@ -126,6 +171,4 @@ exercised in a test run).
   (9th mental video intentionally left out, per the spec's own open
   item — trim via real YouTube engagement data later, not guesswork).
   None of the 16 videos have been watched/screened yet.
-- Real KM-style app icon vs. the current placeholder baseball graphic —
-  low priority, easy to swap later.
-- Mic/voice check-in needs a real iPad test before the demo.
+- Real iPad test for install-to-home-screen + viewport sizing.

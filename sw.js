@@ -1,5 +1,5 @@
-var CACHE_NAME = 'owen-hitting-cache-v1';
-var NETWORK_FIRST_FILES = ['./', './index.html', './css/style.css', './js/app.js', './js/state.js', './js/gist.js', './js/data.js', './js/speech.js', './manifest.json'];
+var CACHE_NAME = 'next-pitch-cache-v1';
+var NETWORK_FIRST_FILES = ['./', './index.html', './css/style.css', './js/app.js', './js/state.js', './js/gist.js', './js/data.js', './manifest.json'];
 
 var SHELL_FILES = NETWORK_FIRST_FILES.concat([
   './icons/icon-180.png',

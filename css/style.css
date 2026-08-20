@@ -1,15 +1,12 @@
 :root {
-  --bg: #0b1220;
-  --bg-card: #141b2e;
-  --bg-card-2: #1a2338;
-  --accent: #ff6b35;
-  --accent-dim: #7a3820;
-  --mental: #4d9de0;
-  --mechanics: #3ddc97;
-  --text: #f5f7fa;
-  --text-dim: #9aa5b8;
-  --danger: #e74c3c;
-  --border: #263252;
+  --bg: #0b0f16;
+  --bg-card: #151b26;
+  --accent: #e8823f;
+  --accent-dim: #5a3b23;
+  --text: #eef1f5;
+  --text-dim: #8b96a8;
+  --danger: #e0574a;
+  --border: #232b3a;
 }
 
 * { box-sizing: border-box; }
@@ -42,10 +39,22 @@ html, body {
 }
 
 .app-title {
-  font-size: 1.5rem;
-  font-weight: 800;
   margin: 0;
 }
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+}
+.brand-word {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.trajectory-icon { flex-shrink: 0; color: var(--accent); }
 
 .lede, .onb-body {
   color: var(--text-dim);
@@ -60,6 +69,14 @@ html, body {
   line-height: 1.25;
   margin: 4px 0 0;
 }
+
+.summary-anchor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent);
+}
+.summary-anchor .trajectory-icon { color: var(--accent); }
 
 .hint {
   color: var(--text-dim);
@@ -84,7 +101,7 @@ html, body {
 
 .btn-primary {
   background: var(--accent);
-  color: #14100b;
+  color: #16110a;
 }
 
 .btn-outline {
@@ -149,7 +166,7 @@ html, body {
 
 .status {
   font-size: 0.9rem;
-  color: var(--mechanics);
+  color: var(--accent);
   text-align: center;
 }
 .status-error { color: var(--danger); }
@@ -192,7 +209,6 @@ html, body {
 }
 .option-card-selected {
   border-color: var(--accent);
-  background: var(--bg-card-2);
 }
 .option-card.checkable {
   flex-direction: row;
@@ -222,8 +238,8 @@ html, body {
 /* ---- reset card ---- */
 
 .reset-card {
-  background: linear-gradient(160deg, var(--bg-card-2), var(--bg-card));
-  border: 2px solid var(--accent-dim);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 22px;
   display: flex;
@@ -234,20 +250,39 @@ html, body {
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: var(--accent);
+  color: var(--text-dim);
 }
-.reset-card-line {
+.reset-card-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.reset-card-key {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  width: 34px;
+  flex-shrink: 0;
+}
+.reset-card-value {
   font-size: 1.1rem;
   font-weight: 700;
+}
+.reset-card-anchor {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-.reset-card-icon { font-size: 1.2rem; }
 .reset-card-triggers {
   font-size: 0.85rem;
   color: var(--text-dim);
-  margin-top: 4px;
 }
 
 /* ---- home ---- */
@@ -269,8 +304,7 @@ html, body {
   padding: 18px;
   text-align: center;
 }
-.streak-block-dim { opacity: 0.75; }
-.streak-flame { font-size: 1.4rem; }
+.streak-block-dim { opacity: 0.7; }
 .streak-number {
   font-size: 2.2rem;
   font-weight: 800;
@@ -284,7 +318,7 @@ html, body {
 }
 
 .day-card {
-  background: linear-gradient(160deg, var(--bg-card-2), var(--bg-card));
+  background: var(--bg-card);
   border-radius: 18px;
   padding: 22px;
   display: flex;
@@ -360,31 +394,10 @@ html, body {
   cursor: pointer;
 }
 .chip-selected {
-  border-color: var(--mechanics);
-  background: var(--bg-card-2);
+  border-color: var(--accent);
 }
 
-.voice-box {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 .voice-textarea { resize: vertical; }
-.mic-btn {
-  align-self: flex-start;
-  background: var(--bg-card);
-  border: 2px solid var(--border);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 10px 18px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-.mic-btn-active {
-  border-color: var(--danger);
-  color: var(--danger);
-}
 
 /* ---- summary ---- */
 

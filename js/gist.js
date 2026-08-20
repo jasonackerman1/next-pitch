@@ -4,7 +4,7 @@
 // future device (or a stale open tab) could otherwise clobber a write.
 
 const GIST_API = 'https://api.github.com/gists';
-const STATE_FILENAME = 'owen-hitting-data.json';
+const STATE_FILENAME = 'next-pitch-data.json';
 const RETRY_DELAYS_MS = [300, 800, 1500];
 
 class GistError extends Error {}

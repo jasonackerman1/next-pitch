@@ -1,9 +1,21 @@
 import { loadCredentials, saveCredentials, loadCachedState, saveCachedState, loadDraftDay, saveDraftDay, clearDraftDay } from './state.js';
 import { fetchState, commitMutation, seedState, GistError } from './gist.js';
 import { emptyState, getContentForDayIndex, RESET_ACTION_OPTIONS, RESET_PHRASE_OPTIONS, RESET_TRIGGER_OPTIONS, PRACTICE_TYPE_OPTIONS } from './data.js';
-import { isSpeechRecognitionSupported, createRecognizer } from './speech.js';
 
 const root = document.getElementById('root');
+
+// The brand mark: a dashed pitch trajectory arcing down to a ball. Used in the header
+// lockup wherever the app identifies itself. currentColor so it inherits text color.
+function trajectoryIcon(size = 22) {
+  return `<svg class="trajectory-icon" width="${size}" height="${size * 0.6}" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 12 Q 68 8 112 46" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 14"/>
+    <circle cx="112" cy="46" r="9" fill="currentColor"/>
+  </svg>`;
+}
+
+function brandLockup() {
+  return `<span class="brand-lockup">${trajectoryIcon(20)}<span class="brand-word">NEXT PITCH</span></span>`;
+}
 
 let creds = loadCredentials();
 let gistState = loadCachedState();
@@ -20,8 +32,6 @@ let onboardingShowActionCustom = false;
 let onboardingShowPhraseCustom = false;
 
 let checkinDraft = { practiced: null, practiceType: [], voiceFeedback: '' };
-let recognizer = null;
-let micListening = false;
 
 let lastCompletedDay = null; // for the daySummary screen
 
@@ -78,7 +88,7 @@ function renderConnectScreen() {
   return `
     <div class="screen screen-connect">
       <div class="screen-inner">
-        <h1 class="app-title">⚾ Owen's Hitting App</h1>
+        <h1 class="app-title">${brandLockup()}</h1>
         <p class="lede">One-time setup — connect the app to its private data store.</p>
         <form id="connect-form" class="connect-form">
           <label>Gist ID
@@ -155,7 +165,7 @@ function renderOnboarding() {
 function onboardingScreen1() {
   return `
     <h1 class="onb-title">Let's build your reset</h1>
-    <p class="onb-body">Every player messes up. The best ones have a way to let it go fast so it doesn't ruin the next play. Let's build yours.</p>
+    <p class="onb-body">Every player messes up. The best ones have a way to let it go fast so it doesn't ruin the next pitch. Let's build yours.</p>
     <button class="btn btn-primary btn-block" data-action="onboarding-next">Let's go</button>
   `;
 }
@@ -223,11 +233,11 @@ function resetCardHtml(routine) {
   const triggerLabels = routine.triggers.map((k) => RESET_TRIGGER_OPTIONS.find((o) => o.key === k)?.label || k);
   return `
     <div class="reset-card">
-      <div class="reset-card-label">OWEN'S RESET</div>
-      <div class="reset-card-line"><span class="reset-card-icon">🤚</span> ${escapeHtml(routine.action)}</div>
-      <div class="reset-card-line"><span class="reset-card-icon">💬</span> Say "${escapeHtml(routine.phrase)}"</div>
-      <div class="reset-card-line"><span class="reset-card-icon">➡️</span> Move on to the next pitch</div>
-      <div class="reset-card-triggers">Use it: ${triggerLabels.map(escapeHtml).join(' · ')}</div>
+      <div class="reset-card-label">YOUR ROUTINE</div>
+      <div class="reset-card-row"><span class="reset-card-key">Do</span><span class="reset-card-value">${escapeHtml(routine.action)}</span></div>
+      <div class="reset-card-row"><span class="reset-card-key">Say</span><span class="reset-card-value">"${escapeHtml(routine.phrase)}"</span></div>
+      <div class="reset-card-anchor">Next Pitch</div>
+      <div class="reset-card-triggers">Use it after: ${triggerLabels.map(escapeHtml).join(' · ')}</div>
     </div>
   `;
 }
@@ -279,12 +289,11 @@ function renderHome() {
     <div class="screen screen-home">
       <div class="screen-inner">
         <div class="home-header">
-          <h1 class="app-title">⚾ Owen's Hitting App</h1>
+          <h1 class="app-title">${brandLockup()}</h1>
           <button class="icon-link" data-action="view-reset-card">My Reset ›</button>
         </div>
         <div class="streak-row">
           <div class="streak-block">
-            <div class="streak-flame">🔥</div>
             <div class="streak-number">${streak}</div>
             <div class="streak-label">day streak</div>
           </div>
@@ -392,14 +401,13 @@ function dayStepVideo(kind) {
 
 function dayStepGoPractice() {
   return `
-    <h1 class="onb-title">Go Practice! 🏃</h1>
+    <h1 class="onb-title">Time to Practice</h1>
     <p class="onb-body">Get your reps in. Come back here when you're done to check in.</p>
-    <button class="btn btn-primary btn-block btn-large" data-action="return-from-practice">I'm back</button>
+    <button class="btn btn-primary btn-block btn-large" data-action="return-from-practice">I'm Back</button>
   `;
 }
 
 function dayStepCheckin() {
-  const speechSupported = isSpeechRecognitionSupported();
   return `
     <h1 class="onb-title">How'd it go?</h1>
 
@@ -420,47 +428,12 @@ function dayStepCheckin() {
 
     ${checkinDraft.practiced !== null ? `
       <p class="checkin-question">How did it feel?</p>
-      <div class="voice-box">
-        <textarea id="voice-feedback-input" class="text-input voice-textarea" placeholder="${speechSupported ? 'Tap the mic and talk, or type here…' : 'Type here…'}" rows="3">${escapeHtml(checkinDraft.voiceFeedback)}</textarea>
-        ${speechSupported ? `
-          <button class="mic-btn ${micListening ? 'mic-btn-active' : ''}" data-action="toggle-mic" type="button">${micListening ? '⏹ Stop' : '🎤 Talk'}</button>
-        ` : ''}
-      </div>
+      <textarea id="voice-feedback-input" class="text-input voice-textarea" placeholder="Type here — or tap in and use your keyboard's dictation mic…" rows="4">${escapeHtml(checkinDraft.voiceFeedback)}</textarea>
       <button class="btn btn-primary btn-block btn-large" data-action="submit-checkin" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : 'Finish Day'}</button>
     ` : ''}
 
     ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}
   `;
-}
-
-function toggleMic() {
-  const textarea = document.getElementById('voice-feedback-input');
-  if (micListening) {
-    recognizer?.stop();
-    return;
-  }
-  if (!recognizer) {
-    recognizer = createRecognizer({
-      onInterim: (text) => {
-        checkinDraft.voiceFeedback = text;
-        if (textarea) textarea.value = text;
-      },
-      onFinal: (text) => {
-        checkinDraft.voiceFeedback = text;
-      },
-      onError: () => {
-        micListening = false;
-        render();
-      },
-      onEnd: () => {
-        micListening = false;
-        render();
-      },
-    });
-  }
-  micListening = true;
-  recognizer.start();
-  render();
 }
 
 async function submitCheckin() {
@@ -530,12 +503,12 @@ function renderDaySummary() {
   return `
     <div class="screen screen-summary">
       <div class="screen-inner">
-        <h1 class="onb-title">Nice work! 🎉</h1>
+        <h1 class="onb-title summary-anchor">${trajectoryIcon(28)}<span>Next Pitch.</span></h1>
+        <p class="onb-body">Day ${d.dayNumber} complete. Whatever happened today, that's what matters now.</p>
         <div class="summary-card">
           <div class="streak-number">${d.currentStreak}</div>
           <div class="streak-label">day streak</div>
         </div>
-        <p class="onb-body">Day ${d.dayNumber} complete.</p>
         <button class="btn btn-primary btn-block btn-large" data-action="go-home">Back to Home</button>
       </div>
     </div>
@@ -643,9 +616,6 @@ function handleAction(action, value) {
       else checkinDraft.practiceType.push(value);
       break;
     }
-    case 'toggle-mic':
-      toggleMic();
-      return;
     case 'submit-checkin':
       submitCheckin();
       return;

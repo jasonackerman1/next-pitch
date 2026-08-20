@@ -1,9 +1,9 @@
 // Local device storage. All localStorage reads/writes go through here.
 // Single-user app (Owen) — no player identity, no commissioner gate.
 
-const CREDENTIALS_KEY = 'owen-hitting:credentials';
-const CACHED_STATE_KEY = 'owen-hitting:cachedState';
-const DRAFT_DAY_KEY = 'owen-hitting:draftDay';
+const CREDENTIALS_KEY = 'next-pitch:credentials';
+const CACHED_STATE_KEY = 'next-pitch:cachedState';
+const DRAFT_DAY_KEY = 'next-pitch:draftDay';
 
 export function loadCredentials() {
   const raw = localStorage.getItem(CREDENTIALS_KEY);
