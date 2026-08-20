@@ -1,12 +1,16 @@
 # Owen's Hitting App — Project Status
 
-**Status: Phase 1 built and smoke-tested locally. Not yet connected to a
-real Gist, not yet committed/pushed, not yet on Owen's iPad.**
+**Status: Phase 1 built, smoke-tested, committed, pushed, and live on
+GitHub Pages. Not yet connected to a real Gist, not yet opened on
+Owen's iPad.**
 
 Personal project (not a Konica Minolta playbook) — a single-user iPad PWA
 for Owen's daily hitting practice accountability. Repo:
-`/Users/jackerman/Documents/next-pitch`. Remote already exists at
-`github.com/jasonackerman1/next-pitch` (public, empty, no Pages yet).
+`/Users/jackerman/Documents/next-pitch`, pushed to
+`github.com/jasonackerman1/next-pitch` (public code repo — no personal
+data lives here, that's all in the secret Gist once Jay creates it).
+Live at **https://jasonackerman1.github.io/next-pitch/** — confirmed
+serving via a direct curl of the deployed page, commit `cc78e73`.
 
 Full requirements: `owen-hitting-app-spec.md` at the repo root — that's
 the source of truth for scope, re-read it before making scope calls.
@@ -118,11 +122,6 @@ exercised in a test run).
 
 ## Not yet done / open questions for Jay
 
-- **Not committed or pushed yet.** Nothing has been pushed to
-  `github.com/jasonackerman1/next-pitch` — ask before doing so, same as
-  any other repo.
-- **GitHub Pages not enabled yet** on that repo — needed before this can
-  be installed to Owen's iPad from a real URL.
 - The video content set is used exactly as the spec's Day 1–8 tables
   (9th mental video intentionally left out, per the spec's own open
   item — trim via real YouTube engagement data later, not guesswork).
