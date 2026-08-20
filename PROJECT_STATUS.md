@@ -17,7 +17,7 @@ of truth for scope, re-read it before making scope calls. The name
 **"Next Pitch"** and the full visual identity below were decided in a
 later session, after the spec — not in that file.
 
-## Brand identity (added after the initial build)
+## Brand identity (added after the initial build; palette/logo replaced again in round 2 below)
 
 - **Name: Next Pitch.** Core idea: no matter what just happened — good or
   bad — the only thing that matters is the next pitch. This is meant to
@@ -26,32 +26,60 @@ later session, after the spec — not in that file.
   using as he gets older, not a kid-app he'll outgrow. No emoji anywhere
   in the UI (there were several in the original build — 🔥🎉🏃⚾🤚💬➡️ — all
   removed in the rebrand pass).
-- **Palette — 2 colors, deliberately tight:** near-black navy background
-  (`--bg: #0b0f16`) + one warm amber-orange accent (`--accent: #e8823f`),
-  plus neutral text/border grays. The old build's separate blue/green
-  colors for mental-vs-mechanics videos were dropped — everything shares
-  the one accent now, differentiated by label text only, not color.
-  Cards are flat single-color surfaces, not gradients — reads calmer.
-- **Logo/icon mark:** a dashed arc trajectory ending in a solid ball —
-  a literal pitch in flight. Built as an inline SVG helper
-  (`trajectoryIcon()` in `js/app.js`) used in the header lockup
-  everywhere the app identifies itself, and as the app icon
-  (`icons/icon-180.png` / `icon-512.png`, regenerated via PIL with a
-  quadratic-bezier-sampled dashed line + a filled circle — same math,
-  separate implementation from the SVG since PIL can't render SVG).
-- **"Next Pitch" language woven into the flow, not just the title:**
-  - Reset card: the fixed third line ("move on to the next pitch," from
-    the original spec's card format) is now a standalone accent-colored
-    badge reading "NEXT PITCH" — the resolving payoff of the card,
-    visually distinct from the two personal-choice lines above it (his
-    chosen action, his chosen cue phrase).
-  - Day-summary screen (the moment right after check-in submit — the
-    most natural place for the payoff line): headline is literally
-    "Next Pitch." followed by "Day N complete. Whatever happened today,
-    that's what matters now." This is the one spot that most directly
-    embodies the name's whole premise.
-  - Home header and the Connect screen both use the same brand lockup
-    (icon + "NEXT PITCH" wordmark) instead of a plain text title.
+- **"Next Pitch" language woven into the flow, not just the title:** the
+  Reset Play card's fixed payoff line is a standalone accent-colored
+  "NEXT PITCH" badge, distinct from Owen's two personal choices above it
+  (his action, his cue phrase); the post-check-in toast (round 2, see
+  below) carries the same line.
+
+## Round 2 redesign (same-day follow-up after Jay's first real test pass)
+
+Jay tested the app for real and came back with five things: cut the post-check-in "saved!"
+screen, make the Reset Play always visible on home instead of hidden behind a button, add
+more homepage stats, do a full visual pass in Owen's actual team colors, and add a real
+first-time explanation of what the app does.
+
+- **No more "saved!" screen.** Submitting check-in now saves and lands directly back on
+  home (there's nothing else to do that day) — a small auto-dismissing toast
+  ("Day N logged — Next Pitch.") carries the payoff line instead of a screen requiring an
+  extra tap. `renderDaySummary`/`lastCompletedDay`/the `daySummary` view are gone entirely.
+- **Palette replaced with Owen's real team colors — black/red/yellow**, not the round-1
+  navy/amber: `--bg: #0a0a0a`, `--accent: #e2231a` (red, used for anything interactive —
+  buttons, selected states, active dots), `--accent-2: #f4c430` (yellow, reserved for
+  highlights only — streak numbers, the wordmark, the reset-card payoff badge) — kept to
+  two roles on purpose so it doesn't turn into a rainbow. `--danger` (the destructive
+  "Reset Everything" button) is a deliberately duller, darker red than `--accent` so it
+  doesn't read as just another primary button now that primary buttons are also red.
+- **Logo replaced.** The round-1 pitch-trajectory arc read as an unclear blur at real
+  small sizes (confirmed by Jay after seeing it live) — replaced with **crossed bats (red)
+  and a ball (yellow) at the intersection**, a crest-style mark that stays legible tiny or
+  large. `crossedBatsIcon()` in `js/app.js` (inline SVG, colors via `var(--accent)` /
+  `var(--accent-2)` so they track the palette automatically), regenerated
+  `icons/icon-180.png`/`icon-512.png` to match via a separate PIL implementation (same
+  visual language, can't reuse the SVG directly since PIL doesn't render SVG).
+- **Added a persistent header bar** (`headerBar()`) on every screen — connect, onboarding,
+  home, day flow, confirm-reset — instead of a small inline lockup that only appeared in a
+  couple of places. The hidden triple-tap-to-reset gesture now lives here (works from any
+  screen, not just home) and is a no-op before a Gist is connected (`if (!creds) return;`
+  guard — there's nothing to reset yet and `creds` would be null).
+- **Home screen restructured, several additions:** the Reset Play card (renamed from
+  "reset routine" throughout — pairs with the existing daily "Reset Rep") is now an
+  always-visible section, not hidden behind a "My Reset ›" button (that button, and the
+  standalone `resetCard` view it opened, are both gone — folded inline instead). Added a
+  mini-stats row (total days logged, team count, solo count) below the streak tiles, and a
+  "Practice Breakdown" bar list at the bottom showing the most-picked "what did you work
+  on?" answers across every day so far — `computeStats()` tallies `practiceType` strings
+  across all days (home options, team options, and typed "Something else" text all mixed
+  into one list; they're just strings, still meaningful combined). Capped to the top 5.
+- **Onboarding welcome screen expanded** into an actual explanation of what the app does
+  day-to-day and why (reset rep + two videos + go practice, or skip straight to logging a
+  team practice) before leading into building the Reset Play — still one screen, not an
+  added step, since Jay was simultaneously asking to cut an unnecessary step elsewhere.
+- **Caught and fixed while building this:** long Practice Breakdown labels (e.g.
+  "Fielding (grounders & pop-ups)") were truncating with an ellipsis — the bar grid gave
+  the label column too little space and forced `nowrap`. Fixed by wrapping instead of
+  truncating and rebalancing the column widths — confirmed by an actual screenshot, not
+  just a CSS read.
 
 ## Voice check-in — simplified, no longer a custom feature
 
@@ -83,13 +111,14 @@ saved to `localStorage` on Owen's iPad only (keys prefixed `next-pitch:`).
 
 ### Files
 - `index.html` — shell, loads `js/app.js` as a module, registers `sw.js`
-- `css/style.css` — dark navy/amber theme, flat surfaces, mobile-first, big tap targets
-- `js/app.js` — all views, the daily-loop state machine, the `trajectoryIcon()`/`brandLockup()` helpers
+- `css/style.css` — black/red/yellow theme, flat surfaces, mobile-first, big tap targets
+- `js/app.js` — all views, the daily-loop state machine, `crossedBatsIcon()`/`headerBar()`
 - `js/gist.js` — Gist read/write, race-safe mutation helper
 - `js/state.js` — localStorage helpers (credentials, cached state, in-progress day)
-- `js/data.js` — the 8-day mental/mechanics video content set + onboarding option lists
+- `js/data.js` — the 8-day mental/mechanics video content set + onboarding option lists +
+  the home/team practice-type option lists
 - `manifest.json` / `sw.js` — PWA install + offline shell
-- `icons/` — trajectory-arc app icon (PIL-generated, matches the in-app SVG mark)
+- `icons/` — crossed-bats-and-ball crest app icon (PIL-generated, matches the in-app SVG mark)
 
 ### Data model
 Matches the spec's PART 3 exactly: `{ resetRoutine, days: [...], currentStreak, longestStreak }`,
