@@ -1,8 +1,93 @@
 # Next Pitch — Project Status
 
-**Status: Phase 1 built, rebranded, smoke-tested, committed, pushed, and
-live on GitHub Pages. Not yet connected to a real Gist, not yet opened
-on Owen's iPad.**
+**Status: Full "Street Drop" visual identity built into the real app
+(2026-08-20), smoke-tested, committed, pushed, live on GitHub Pages.
+Real Gist connected and tested by Jay. Not yet opened on Owen's iPad.**
+
+## Visual identity — Street Drop (current, live)
+
+Jay wasn't happy with the app's look-and-feel and asked for a proper
+design exploration before more feature work. That happened as a
+multi-round design-canvas process (mockups only, not app code) —
+researched two real streetwear/baseball brands he named (Dirty Mids,
+Baseballism), built and iterated several directions, and Jay picked
+**Street Drop** (Dirty Mids-inspired) after seeing it applied across
+every real screen in the app, not just Home. Full history of that
+process — rejected directions, why, and the specific feedback that
+shaped each refinement — is in project memory (`design_exploration_street_drop.md`).
+This section covers only what's actually live now:
+
+- **Palette:** near-black (`--bg: #0a0a0a`), lime green as the one
+  interactive/primary color (`--accent: #d4ff1f` — buttons, active
+  states, bars, the wordmark's "PITCH"), a narrow blue used ONLY for
+  the "best streak" number (`--accent-2: #29c8ff`) so it doesn't dilute
+  lime's role, and a baseball-stitch red (`--stitch: #c8102e`) used
+  only for the Reset Play card's dashed border. `--danger` (muted dark
+  red, `#7a1f1f`) is unchanged from before — kept distinct from
+  `--stitch` so destructive actions don't look like a stitch accent.
+- **Fonts:** Big Shoulders (bold condensed, all UI chrome — titles,
+  buttons, labels, numbers, the wordmark) + Archivo (body copy) via
+  Google Fonts, loaded in `index.html`.
+- **Logo:** two crossed baseball bats (tapered barrel-to-handle, round
+  knob) — `crossedBatsIcon()` in `js/app.js`. An earlier round added a
+  ball at the center; Jay said it looked "weird" once he actually saw
+  it live, and asked to go back to his original idea of just crossed
+  bats. Regenerated `icons/icon-180.png`/`icon-512.png` to match via a
+  separate PIL implementation (same geometry, since PIL can't render
+  the SVG directly) — **hit a real coordinate-scaling bug** the first
+  time (forgot to scale the knob-circle position by the icon's
+  size/100 factor, which clustered both knobs in one corner instead of
+  at the two bat handles) — caught by actually rendering the PNG, not
+  by reading the script, and fixed before shipping.
+- **Recurring baseball-motif icons**, both new helper functions in
+  `js/app.js`: `plateIcon()` — a small home-plate pentagon
+  (`clip-path`), used as a bullet before every "Day N" label
+  everywhere in the daily flow, AND as the shape for two specific
+  badges: the Home hero card's corner "Streak" tag (flush in the
+  corner, not floating/rotated — Jay called out the earlier floating
+  rotated version as looking "random") and the Reset Play card's
+  "NEXT PITCH" payoff badge (right-justified, per Jay's specific ask —
+  it was left-aligned before). `stitchIcon()` — a small red X mark
+  used before "Your Reset Play" and "Practice Breakdown" section
+  titles, and reused for the onboarding progress dots (`.dot`/`.dot
+  line`/`.dot.active line` in CSS) instead of plain circles.
+- **`.btn-plate` is a deliberate, narrow modifier** — the home-plate
+  taper on primary buttons applies ONLY to genuine "go" actions (Start
+  Today, Finish Day, Let's Go, Connect, Continue, I'm Back, I watched
+  it, This is my Reset Play!, Done — I did my reset rep) via an
+  explicit `btn-plate` class added alongside `btn-primary` on each of
+  those 11 button call sites. It deliberately does NOT apply to the
+  Yes/No practiced toggle (same `.btn-primary`/`.btn-outline` classes,
+  reused for a binary choice, not a CTA) or to `.btn-danger`/`.btn-outline`
+  (Reset Everything / Cancel) — confirmed by checking call sites
+  directly, not just applying a blanket CSS rule, since a global
+  `.btn-primary { clip-path: ... }` would have caught the toggle too.
+- **Sharp corners everywhere** (`border-radius: 0` on cards, buttons,
+  chips, inputs, option-cards) — confirmed by grepping the actual
+  approved mockup files for `border-radius` and finding zero hits
+  before porting, rather than assuming rounded corners carried over
+  from the pre-redesign app.
+- A faint baseball-seam watermark on the hero title screens (Welcome,
+  Reset Play confirmation, Go Time) was tried and explicitly rejected
+  by Jay ("remove... but subtle instead of loud" — his own words back
+  at me) — do not reintroduce it.
+- The checkbox checkmark on "When do you want to use your reset?"
+  deliberately stayed a plain ✓, not a pentagon/stitch icon — Jay's
+  own call when asked directly, since it's a functional indicator, not
+  a decorative spot.
+- **Verification:** ported by directly translating the approved,
+  screenshotted mockup CSS into the real app's existing class names
+  (not renaming anything in the DOM/JS), then re-verified by actually
+  running the real app end-to-end against a mocked Gist (Playwright,
+  zero console errors) and screenshotting every screen type — home,
+  full onboarding, the full daily loop, and the reset-everything
+  confirmation. That pass caught one real porting bug (mini-stat
+  number/label were `<span>`s that need explicit
+  `flex-direction:column` to stack — the mockup's equivalent used
+  block `<div>`s, which stack for free — so the CSS rule needed an
+  addition that wasn't obvious just from reading the mockup's CSS).
+
+## Original phase-1 build (superseded by the above, kept for history)
 
 Personal project (not a Konica Minolta playbook) — a single-user iPad PWA
 for Owen's daily hitting practice accountability, branded **Next Pitch**.

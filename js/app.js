@@ -4,20 +4,32 @@ import { emptyState, getContentForDayIndex, RESET_ACTION_OPTIONS, RESET_PHRASE_O
 
 const root = document.getElementById('root');
 
-// The brand mark: crossed bats (team red) with a ball (team yellow) at the intersection —
-// a small crest rather than an illustrative "bat hitting ball" scene, which doesn't hold up
-// at small sizes. Colors are CSS custom properties, not hardcoded — this SVG is inserted
-// inline into the document (not as an <img>), so var(--accent) etc. resolve normally.
+// The brand mark: two crossed baseball bats, tapered barrel-to-handle with a round knob —
+// Jay's original idea. An earlier round added a ball at the center; that read as a blurry
+// blob at small sizes and got dropped, back to just the bats. Colors are CSS custom
+// properties, not hardcoded — this SVG is inserted inline into the document (not as an
+// <img>), so var(--accent) resolves normally.
 function crossedBatsIcon(size = 28) {
+  const bat = 'M42,4 L58,4 L53.5,52 L53.5,84 L46.5,84 L46.5,52 Z';
   return `<svg class="brand-mark" width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <line x1="24" y1="24" x2="76" y2="76" stroke="var(--accent)" stroke-width="11" stroke-linecap="round"/>
-    <line x1="76" y1="24" x2="24" y2="76" stroke="var(--accent)" stroke-width="11" stroke-linecap="round"/>
-    <circle cx="24" cy="24" r="6.5" fill="var(--accent)"/>
-    <circle cx="76" cy="24" r="6.5" fill="var(--accent)"/>
-    <circle cx="50" cy="50" r="15" fill="var(--accent-2)"/>
-    <path d="M42 43 Q 50 48 42 57" stroke="var(--bg)" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M58 43 Q 50 48 58 57" stroke="var(--bg)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <g transform="rotate(45 50 50)">
+      <path d="${bat}" fill="var(--accent)"/>
+      <circle cx="50" cy="88" r="6" fill="var(--accent)"/>
+    </g>
+    <g transform="rotate(-45 50 50)">
+      <path d="${bat}" fill="var(--accent)"/>
+      <circle cx="50" cy="88" r="6" fill="var(--accent)"/>
+    </g>
   </svg>`;
+}
+
+// Small recurring baseball-motif icons — a home-plate pentagon (used as a bullet before
+// every "Day N" label) and a stitch mark (an X, used as a bullet before section titles).
+function plateIcon() {
+  return '<span class="plate-icon"></span>';
+}
+function stitchIcon() {
+  return '<svg class="stitch-icon" width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke-width="1.6" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke-width="1.6" stroke-linecap="round"/></svg>';
 }
 
 // Persistent header on every screen — not just home — so the brand reads consistently
@@ -29,8 +41,8 @@ function headerBar() {
   return `
     <header class="app-header">
       <button type="button" class="brand-mark-tap" data-action="brand-tap" aria-label="Next Pitch">
-        ${crossedBatsIcon(30)}
-        <span class="brand-word">NEXT PITCH</span>
+        ${crossedBatsIcon(28)}
+        <span class="brand-word">NEXT <span>PITCH</span></span>
       </button>
     </header>
   `;
@@ -132,7 +144,7 @@ function renderConnectScreen() {
           <label>Access Token
             <input type="password" id="input-token" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" spellcheck="false" required />
           </label>
-          <button type="submit" class="btn btn-primary btn-block" ${busy ? 'disabled' : ''}>${busy ? 'Connecting…' : 'Connect'}</button>
+          <button type="submit" class="btn btn-primary btn-plate btn-block" ${busy ? 'disabled' : ''}>${busy ? 'Connecting…' : 'Connect'}</button>
         </form>
         ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}
         <p class="hint">This only needs to be done once on Owen's iPad.</p>
@@ -175,7 +187,9 @@ async function handleConnectSubmit(e) {
 
 function progressDots(total, current) {
   let dots = '';
-  for (let i = 1; i <= total; i++) dots += `<span class="dot ${i === current ? 'dot-active' : ''}"></span>`;
+  for (let i = 1; i <= total; i++) {
+    dots += `<svg class="dot ${i <= current ? 'dot-active' : ''}" width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke-width="1.6" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+  }
   return `<div class="dots">${dots}</div>`;
 }
 
@@ -208,7 +222,7 @@ function onboardingScreen1() {
     <p class="onb-body">First, let's build your <strong>Reset Play</strong> — your own
       routine for letting go of a strikeout, an error, or a bad call fast, so it doesn't
       wreck your next pitch.</p>
-    <button class="btn btn-primary btn-block" data-action="onboarding-next">Let's go</button>
+    <button class="btn btn-primary btn-plate btn-block" data-action="onboarding-next">Let's go</button>
   `;
 }
 
@@ -227,7 +241,7 @@ function onboardingScreen2() {
     </div>
     ${onboardingShowActionCustom ? `
       <input type="text" id="input-action-custom" class="text-input" placeholder="Type your own…" value="${escapeHtml(customValue)}" />
-      <button class="btn btn-primary btn-block" data-action="confirm-action-custom">Continue</button>
+      <button class="btn btn-primary btn-plate btn-block" data-action="confirm-action-custom">Continue</button>
     ` : ''}
   `;
 }
@@ -248,7 +262,7 @@ function onboardingScreen3() {
     </div>
     ${onboardingShowPhraseCustom ? `
       <input type="text" id="input-phrase-custom" class="text-input" placeholder="Type your own…" value="${escapeHtml(customValue)}" />
-      <button class="btn btn-primary btn-block" data-action="confirm-phrase-custom">Continue</button>
+      <button class="btn btn-primary btn-plate btn-block" data-action="confirm-phrase-custom">Continue</button>
     ` : ''}
   `;
 }
@@ -267,7 +281,7 @@ function onboardingScreen4() {
       `).join('')}
       <button class="option-card ${allSelected ? 'option-card-selected' : ''}" data-action="select-all-triggers">All of the above</button>
     </div>
-    <button class="btn btn-primary btn-block" data-action="onboarding-next" ${onboardingDraft.triggers.length === 0 ? 'disabled' : ''}>Continue</button>
+    <button class="btn btn-primary btn-plate btn-block" data-action="onboarding-next" ${onboardingDraft.triggers.length === 0 ? 'disabled' : ''}>Continue</button>
   `;
 }
 
@@ -290,7 +304,7 @@ function onboardingScreen5() {
     <h1 class="onb-title">This is your Reset Play</h1>
     ${resetCardHtml(onboardingDraft)}
     <p class="onb-body">You'll do a quick rep of this every day before you go practice.</p>
-    <button class="btn btn-primary btn-block" data-action="save-reset-routine" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : 'This is my Reset Play!'}</button>
+    <button class="btn btn-primary btn-plate btn-block" data-action="save-reset-routine" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : 'This is my Reset Play!'}</button>
     ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}
   `;
 }
@@ -344,13 +358,13 @@ function computeStats(days) {
 function practiceBreakdownHtml(stats) {
   if (stats.breakdown.length === 0) {
     return `
-      <div class="section-title">Practice Breakdown</div>
+      <div class="section-title">${stitchIcon()}Practice Breakdown</div>
       <p class="onb-body">Log a few days and your most-worked-on drills will show up here.</p>
     `;
   }
   const maxCount = stats.breakdown[0][1];
   return `
-    <div class="section-title">Practice Breakdown</div>
+    <div class="section-title">${stitchIcon()}Practice Breakdown</div>
     <div class="bar-list">
       ${stats.breakdown.map(([label, count]) => `
         <div class="bar-row">
@@ -371,14 +385,15 @@ function renderHome() {
   return `
     <div class="screen screen-home">
       <div class="screen-inner">
-        <div class="streak-row">
-          <div class="streak-block">
+        <div class="hero">
+          <div class="hero-tag">Streak</div>
+          <div>
             <div class="streak-number">${streak}</div>
             <div class="streak-label">day streak</div>
           </div>
-          <div class="streak-block streak-block-dim">
-            <div class="streak-number">${longest}</div>
-            <div class="streak-label">best streak</div>
+          <div class="hero-best">
+            <div class="hero-best-num">${longest}</div>
+            <div class="hero-best-label">best</div>
           </div>
         </div>
 
@@ -389,13 +404,14 @@ function renderHome() {
         </div>
 
         <div class="day-card">
-          <div class="day-card-label">Day ${dayNumber}</div>
+          <div class="day-num">NO. ${String(dayNumber).padStart(2, '0')}</div>
+          <div class="day-card-label">${plateIcon()}Day ${dayNumber}</div>
           <p class="day-card-body">Team practice or on your own — let's check in.</p>
-          <button class="btn btn-primary btn-block btn-large" data-action="start-day">Start Today</button>
+          <button class="btn btn-primary btn-plate btn-block btn-large" data-action="start-day">Start Today →</button>
         </div>
 
         <div class="section">
-          <div class="section-title">Your Reset Play</div>
+          <div class="section-title">${stitchIcon()}Your Reset Play</div>
           ${resetCardHtml(gistState.resetRoutine)}
         </div>
 
@@ -499,7 +515,7 @@ function renderDayStep() {
   return `
     <div class="screen screen-day">
       <div class="screen-inner">
-        <div class="day-step-label">Day ${draftDay.dayNumber}</div>
+        <div class="day-step-label">${plateIcon()}Day ${draftDay.dayNumber}</div>
         ${body}
       </div>
     </div>
@@ -528,7 +544,7 @@ function dayStepResetRep() {
     <h1 class="onb-title">Reset Rep</h1>
     <p class="onb-body">Run through your Reset Play once before you head out.</p>
     ${resetCardHtml(gistState.resetRoutine)}
-    <button class="btn btn-primary btn-block btn-large" data-action="complete-reset-rep">Done — I did my reset rep</button>
+    <button class="btn btn-primary btn-plate btn-block btn-large" data-action="complete-reset-rep">Done — I did my reset rep</button>
   `;
 }
 
@@ -544,7 +560,7 @@ function dayStepVideo(kind) {
       <iframe src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}" title="${escapeHtml(title)}" frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
     </div>
-    <button class="btn btn-primary btn-block btn-large" data-action="${action}">I watched it</button>
+    <button class="btn btn-primary btn-plate btn-block btn-large" data-action="${action}">I watched it</button>
   `;
 }
 
@@ -552,7 +568,7 @@ function dayStepGoPractice() {
   return `
     <h1 class="onb-title">Time to Practice</h1>
     <p class="onb-body">Get your reps in. Come back here when you're done to check in.</p>
-    <button class="btn btn-primary btn-block btn-large" data-action="return-from-practice">I'm Back</button>
+    <button class="btn btn-primary btn-plate btn-block btn-large" data-action="return-from-practice">I'm Back</button>
   `;
 }
 
@@ -585,7 +601,7 @@ function dayStepCheckin() {
     ${checkinDraft.practiced !== null ? `
       <p class="checkin-question">How did it feel?</p>
       <textarea id="voice-feedback-input" class="text-input voice-textarea" placeholder="Type here — or tap in and use your keyboard's dictation mic…" rows="4">${escapeHtml(checkinDraft.voiceFeedback)}</textarea>
-      <button class="btn btn-primary btn-block btn-large" data-action="submit-checkin" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : 'Finish Day'}</button>
+      <button class="btn btn-primary btn-plate btn-block btn-large" data-action="submit-checkin" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : 'Finish Day'}</button>
     ` : ''}
 
     ${statusMessage ? `<p class="status ${statusIsError ? 'status-error' : ''}">${escapeHtml(statusMessage)}</p>` : ''}

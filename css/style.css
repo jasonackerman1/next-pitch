@@ -1,12 +1,13 @@
 :root {
   --bg: #0a0a0a;
-  --bg-card: #181414;
-  --accent: #e2231a;    /* team red — interactive/actionable */
-  --accent-2: #f4c430;  /* team yellow — highlight/celebratory */
-  --danger: #7a1f1f;    /* muted, distinct from --accent so destructive actions don't read as just another primary button */
+  --bg-card: #141414;
+  --accent: #d4ff1f;    /* lime — primary interactive color: buttons, active states, accents */
+  --accent-2: #29c8ff;  /* blue — narrow secondary highlight, reserved for the "best streak" number only */
+  --stitch: #c8102e;    /* baseball-stitch red — the Reset Play card's dashed border, decorative stitch marks */
+  --danger: #7a1f1f;    /* muted, distinct from --accent/--stitch so destructive actions read as their own thing */
   --text: #f5f5f5;
-  --text-dim: #999999;
-  --border: #2a2626;
+  --text-dim: #8f8f8f;
+  --border: #262626;
 }
 
 * { box-sizing: border-box; }
@@ -16,7 +17,7 @@ html, body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -34,7 +35,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 2px solid var(--accent);
+  border-bottom: 5px solid var(--accent);
 }
 .brand-mark-tap {
   background: none;
@@ -48,11 +49,14 @@ html, body {
   gap: 10px;
 }
 .brand-word {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--accent-2);
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--text);
 }
+.brand-word span { color: var(--accent); }
 
 .screen {
   display: flex;
@@ -76,9 +80,11 @@ html, body {
 }
 
 .onb-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  line-height: 1.25;
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 900;
+  font-size: 1.7rem;
+  text-transform: uppercase;
+  line-height: 1.2;
   margin: 4px 0 0;
 }
 
@@ -88,13 +94,29 @@ html, body {
   text-align: center;
 }
 
+/* ---- small baseball-motif icons, reused throughout ---- */
+
+.plate-icon {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 60%, 50% 100%, 0% 60%);
+  flex-shrink: 0;
+}
+.stitch-icon { flex-shrink: 0; }
+.stitch-icon line { stroke: var(--stitch); }
+
 /* ---- buttons ---- */
 
 .btn {
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 800;
   font-size: 1.05rem;
-  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   padding: 16px 20px;
-  border-radius: 14px;
+  border-radius: 0;
   border: none;
   cursor: pointer;
   transition: transform 0.08s, opacity 0.15s;
@@ -105,7 +127,14 @@ html, body {
 
 .btn-primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--bg);
+}
+
+/* Reserved for genuine "go" actions (Start Today, Finish Day, Let's Go...) — NOT the
+   Yes/No toggle, which stays a plain rectangle since it's a binary choice, not a CTA. */
+.btn-plate {
+  padding-bottom: 22px;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 78%, 50% 100%, 0% 78%);
 }
 
 .btn-outline {
@@ -126,8 +155,11 @@ html, body {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   padding: 4px 0;
   align-self: flex-start;
   cursor: pointer;
@@ -151,11 +183,11 @@ html, body {
 .text-input, .connect-form input {
   background: var(--bg-card);
   border: 2px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   color: var(--text);
   font-size: 1rem;
   padding: 14px;
-  font-family: inherit;
+  font-family: 'Archivo', sans-serif;
   width: 100%;
 }
 .text-input:focus, .connect-form input:focus {
@@ -165,7 +197,7 @@ html, body {
 
 .status {
   font-size: 0.9rem;
-  color: var(--accent-2);
+  color: var(--accent);
   text-align: center;
 }
 .status-error { color: #ff6b5e; }
@@ -178,13 +210,8 @@ html, body {
   justify-content: center;
   margin-bottom: 4px;
 }
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--border);
-}
-.dot-active { background: var(--accent); }
+.dot line { stroke: var(--border); }
+.dot.dot-active line { stroke: var(--accent); }
 
 .option-list {
   display: flex;
@@ -195,7 +222,7 @@ html, body {
 .option-card {
   background: var(--bg-card);
   border: 2px solid var(--border);
-  border-radius: 14px;
+  border-radius: 0;
   color: var(--text);
   font-size: 1.05rem;
   font-weight: 600;
@@ -218,7 +245,7 @@ html, body {
 .check-box {
   width: 22px;
   height: 22px;
-  border-radius: 6px;
+  border-radius: 0;
   border: 2px solid var(--border);
   display: flex;
   align-items: center;
@@ -238,8 +265,8 @@ html, body {
 
 .reset-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 18px;
+  border: 2px dashed var(--stitch);
+  border-radius: 0;
   padding: 22px;
   display: flex;
   flex-direction: column;
@@ -247,9 +274,10 @@ html, body {
 }
 .reset-card-label {
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--text-dim);
+  text-transform: uppercase;
 }
 .reset-card-row {
   display: flex;
@@ -257,27 +285,31 @@ html, body {
   gap: 12px;
 }
 .reset-card-key {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
   color: var(--text-dim);
+  text-transform: uppercase;
   width: 34px;
   flex-shrink: 0;
 }
 .reset-card-value {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
 }
 .reset-card-anchor {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-  color: var(--accent-2);
-  font-size: 1rem;
+  display: inline-block;
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: 'Big Shoulders', sans-serif;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  padding: 9px 16px 14px;
+  margin-top: 6px;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 68%, 50% 100%, 0% 68%);
 }
 .reset-card-triggers {
   font-size: 0.85rem;
@@ -286,29 +318,57 @@ html, body {
 
 /* ---- home ---- */
 
-.streak-row {
-  display: flex;
-  gap: 14px;
-}
-.streak-block {
-  flex: 1;
+.hero {
   background: var(--bg-card);
-  border-radius: 16px;
-  padding: 18px;
-  text-align: center;
+  position: relative;
+  padding: 20px 20px 20px 26px;
+  border-left: 6px solid var(--accent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
 }
-.streak-block-dim { opacity: 0.7; }
-.streak-number {
-  font-size: 2.2rem;
+.hero-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: 'Big Shoulders', sans-serif;
   font-weight: 800;
-  color: var(--accent-2);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 16px 10px;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 60%, 50% 100%, 0% 60%);
+}
+.streak-number {
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 900;
+  font-size: 3.6rem;
+  line-height: 1;
+  color: var(--text);
 }
 .streak-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-dim);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+.hero-best { text-align: right; }
+.hero-best-num {
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 800;
+  font-size: 1.7rem;
+  color: var(--accent-2);
+}
+.hero-best-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
 }
 
 .mini-stats-row {
@@ -318,38 +378,57 @@ html, body {
 .mini-stat {
   flex: 1;
   background: var(--bg-card);
-  border-radius: 12px;
-  padding: 10px 8px;
+  border-bottom: 3px solid var(--accent);
+  padding: 12px 8px;
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 .mini-stat-num {
-  font-size: 1.3rem;
+  font-family: 'Big Shoulders', sans-serif;
   font-weight: 800;
+  font-size: 1.4rem;
 }
 .mini-stat-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
+  font-weight: 700;
   color: var(--text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
 }
 
 .day-card {
   background: var(--bg-card);
-  border-radius: 18px;
-  padding: 22px;
+  border: 2px solid var(--border);
+  border-radius: 0;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
+}
+.day-num {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
 }
 .day-card-label {
-  font-size: 0.8rem;
+  font-family: 'Big Shoulders', sans-serif;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--accent-2);
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  color: var(--accent);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .day-card-body { color: var(--text-dim); margin: 0; }
 
@@ -359,11 +438,15 @@ html, body {
   gap: 10px;
 }
 .section-title {
-  font-size: 0.8rem;
+  font-family: 'Big Shoulders', sans-serif;
   font-weight: 800;
+  font-size: 0.85rem;
   letter-spacing: 0.08em;
   color: var(--text-dim);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .bar-list {
@@ -386,18 +469,18 @@ html, body {
 .bar-track {
   height: 8px;
   background: var(--bg-card);
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 .bar-fill {
   height: 100%;
   background: var(--accent);
-  border-radius: 4px;
 }
 .bar-count {
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 800;
   font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--accent-2);
+  color: var(--accent);
   min-width: 18px;
   text-align: right;
 }
@@ -405,11 +488,15 @@ html, body {
 /* ---- day flow ---- */
 
 .day-step-label {
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-family: 'Big Shoulders', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   color: var(--text-dim);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .video-caption {
@@ -422,7 +509,7 @@ html, body {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: 14px;
+  border-radius: 0;
   overflow: hidden;
   background: #000;
 }
@@ -453,11 +540,13 @@ html, body {
 .chip {
   background: var(--bg-card);
   border: 2px solid var(--border);
+  border-radius: 0;
   color: var(--text);
-  border-radius: 999px;
   padding: 10px 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 .chip-selected {
@@ -474,8 +563,8 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
   background: var(--bg-card);
-  border: 1px solid var(--accent-2);
-  color: var(--accent-2);
+  border: 1px solid var(--accent);
+  color: var(--accent);
   padding: 12px 20px;
   border-radius: 999px;
   font-weight: 700;

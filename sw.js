@@ -1,4 +1,4 @@
-var CACHE_NAME = 'next-pitch-cache-v1';
+var CACHE_NAME = 'next-pitch-cache-v2';
 var NETWORK_FIRST_FILES = ['./', './index.html', './css/style.css', './js/app.js', './js/state.js', './js/gist.js', './js/data.js', './manifest.json'];
 
 var SHELL_FILES = NETWORK_FIRST_FILES.concat([
