@@ -1,5 +1,14 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
+## Look: "Ballpark Classic", from Jay's brand sheet (2026-10-28, NOT yet committed or deployed)
+
+Jay supplied a brand sheet (logo lockups, retro rubber-hose mascot heads/poses, palette navy #0E2A47 / red #E6392D / cream #F5EBD7) and phone + web mockups. Originals saved in `_brand/` (git-ignored). Replaces Primetime below. **Kept our game rules over the mockups** (Jay's call): outs not hearts, no leaderboard, nothing locked, drawn field diagrams. Art is **cut from the sheets for now** (`img/skip/head-*.png`, `pose-*.png`, `img/logo.png`, icons cropped from the mockup's red app icon); Jay will send clean transparent exports later. Swapping files at the same paths needs no code change. The big full-body mascot couldn't be cut (navy cap on navy background).
+- Home: welcome line, poster-style "today's at-bat" card (red sun + batting pose), "Keep it going!" streak week (new `playedDays` in the engine + `weekPlayed()`), My Progress units with their own color + icon, a cream Pro Tip card (one original tip a day).
+- Lesson: unit tag, sentence-case prompt, A–D pill answers, green/red feedback sheets with a Skip reaction head and a cream explanation card. Results: Skip over a spinning red burst, Right/XP/Streak tiles.
+- Rewards: glove card, 8 auto-earned badges, ranks. Profile: avatar (Skip in shades), stat tiles, colored skill progress bars.
+- Desktop: sidebar logo + red active nav + tagline; right rail streak / rank / glove / Pro Tip.
+- Verified headless at 375/390/820/1180/1440, full lesson + results + rewards + profile, zero errors; engine tests pass. `sw.js` cache v8 (precaches all art).
+
 ## Book pass: Baseball IQ for Kids and Teens (2026-10-28, NOT yet committed or deployed)
 
 Jay added 52 screenshots of the Amazon sample (pp. 1–48: rules, positions, most of the baserunning chapters) to `_books/` (git-ignored, never commit). 23 new situations written in our own words: Baserunning additions, a new **Leads & Steals** unit (u8; 4 existing lead/steal concepts moved in, ids unchanged so progress is safe), a new **Know the Rules** unit (u9), 3 Outfield (wall then ball, when to let a foul drop, get it to the infield), and the hit-and-run. Reset is now u10. Total: 86 situations / 258 cards, 29 marked for the coach. Deliberately skipped the book's "angle your slide at the throw" tip because GHVBL is avoid-contact. The rest of the book (hitting, infield, outfield, pitching, catching) is not in the sample; its table of contents is a good topic list. `sw.js` cache v7.

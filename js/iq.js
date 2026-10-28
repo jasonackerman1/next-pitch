@@ -55,6 +55,7 @@ export function emptyIqState() {
     streak: 0,
     longestStreak: 0,
     lastPlayed: null,
+    playedDays: [], // recent days with at least one answer — drives the streak week
     outs: 0,
     outsDate: null,
     missed: [],
@@ -259,6 +260,9 @@ export function applyLesson(iqIn, { mode, answers, completed }, today) {
   }
   iq.xp += xpEarned;
 
+  if (answers.length > 0) {
+    iq.playedDays = [...new Set([...(iq.playedDays || []), today])].sort().slice(-21);
+  }
   if (answers.length > 0 && iq.lastPlayed !== today) {
     iq.streak = iq.lastPlayed === addDays(today, -1) ? iq.streak + 1 : 1;
     iq.longestStreak = Math.max(iq.longestStreak, iq.streak);
@@ -272,4 +276,18 @@ export function applyLesson(iqIn, { mode, answers, completed }, today) {
 export function displayStreak(iq, today) {
   if (!iq.lastPlayed) return 0;
   return iq.lastPlayed === today || iq.lastPlayed === addDays(today, -1) ? iq.streak : 0;
+}
+
+/** Sunday-to-Saturday of the current week, marking days he played. Days from before
+ *  playedDays existed are filled in from the streak (a streak of N ending on lastPlayed
+ *  means each of those N days was played). */
+export function weekPlayed(iq, today) {
+  const played = new Set(iq.playedDays || []);
+  if (iq.lastPlayed) for (let i = 0; i < (iq.streak || 0); i++) played.add(addDays(iq.lastPlayed, -i));
+  const [y, m, d] = today.split('-').map(Number);
+  const sunday = todayKey(new Date(y, m - 1, d - new Date(y, m - 1, d).getDay()));
+  return ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, i) => {
+    const key = addDays(sunday, i);
+    return { key, label, played: played.has(key), isToday: key === today, future: key > today };
+  });
 }

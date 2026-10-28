@@ -1,9 +1,29 @@
-var CACHE_NAME = 'heads-up-cache-v7';
+var CACHE_NAME = 'heads-up-cache-v8';
 var NETWORK_FIRST_FILES = ['./', './index.html', './css/style.css', './js/app.js', './js/state.js', './js/gist.js', './js/data.js', './js/iq.js', './js/iq-content.js', './manifest.json'];
 
 var SHELL_FILES = NETWORK_FIRST_FILES.concat([
   './icons/icon-180.png',
   './icons/icon-512.png',
+  './icons/icon-192.png',
+  './img/logo.png',
+  './img/skip/head-happy.png',
+  './img/skip/head-confident.png',
+  './img/skip/head-wink.png',
+  './img/skip/head-determined.png',
+  './img/skip/head-focused.png',
+  './img/skip/head-surprised.png',
+  './img/skip/head-laughing.png',
+  './img/skip/head-gameface.png',
+  './img/skip/head-thinking.png',
+  './img/skip/head-excited.png',
+  './img/skip/head-suspicious.png',
+  './img/skip/head-cool.png',
+  './img/skip/pose-batting.png',
+  './img/skip/pose-pitching.png',
+  './img/skip/pose-fielding.png',
+  './img/skip/pose-running.png',
+  './img/skip/pose-throwing.png',
+  './img/skip/pose-coaching.png',
   './fonts/barlow-500.woff2',
   './fonts/barlow-600.woff2',
   './fonts/barlow-700.woff2',

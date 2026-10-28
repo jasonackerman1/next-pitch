@@ -1,10 +1,10 @@
 import { loadCredentials, saveCredentials, loadCachedState, saveCachedState, loadDraftDay, saveDraftDay, clearDraftDay, loadIqLesson, saveIqLesson, clearIqLesson } from './state.js';
 import { fetchState, commitMutation, seedState, GistError } from './gist.js';
 import { emptyState, getContentForDayIndex, PRACTICE_ENABLED, PLAYER_NAME, RESET_ACTION_OPTIONS, RESET_PHRASE_OPTIONS, RESET_TRIGGER_OPTIONS, HOME_PRACTICE_TYPE_OPTIONS, TEAM_PRACTICE_TYPE_OPTIONS } from './data.js';
-import { IQ_REWARDS } from './iq-content.js';
+import { IQ_REWARDS, IQ_UNITS } from './iq-content.js';
 import {
   OUTS_PER_INNING, MASTERED_BOX, RANKS, todayKey, normalizeIq, outsToday, rankFor, conceptById, resolveVariant,
-  unitStatuses, freshConceptIds, masteryTotals, makeCard, buildLesson, buildReviewLesson, applyLesson, displayStreak,
+  unitStatuses, freshConceptIds, masteryTotals, makeCard, buildLesson, buildReviewLesson, applyLesson, displayStreak, weekPlayed,
 } from './iq.js';
 
 const root = document.getElementById('root');
@@ -23,6 +23,18 @@ const ICONS = {
   lock: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h.5A1.5 1.5 0 0 1 19 11.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-8A1.5 1.5 0 0 1 6.5 10zm2.5 0h5V7.5a2.5 2.5 0 0 0-5 0z"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  home: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8 1.8 11.4h3V21h5.4v-6h3.6v6h5.4v-9.6h3z"/></svg>',
+  gem: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.8 21 7v10l-9 5.2L3 17V7z" opacity=".55"/><path d="M12 1.8 21 7l-9 5.2L3 7z"/><path d="M12 12.2V22.2L3 17V7z" opacity=".8"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5 20.5 5v6.5c0 5.3-3.6 9.3-8.5 11-4.9-1.7-8.5-5.7-8.5-11V5z"/><path d="m12 6.5 1.6 3.3 3.6.5-2.6 2.5.6 3.6L12 14.7l-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#0b1524"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M1.8 12S5.6 5 12 5s10.2 7 10.2 7-3.8 7-10.2 7S1.8 12 1.8 12z"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg>',
+  mitt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.6 21.5c-3.8-2-5.1-6.6-3.9-12.2.6-2.8 3-3.1 3.6-.9l.6 3 .4-6.2c.1-2.5 3.1-2.5 3.3 0l.4 5.8.6-6.4c.3-2.5 3.2-2.2 3.2.2l-.1 6.4 1.2-4.3c.8-2.4 3.7-1.6 3.3.8l-1.2 6.6c1.6-1.1 3.5.2 2.5 2-1.9 3.4-5 6-9.3 6.2z"/></svg>',
+  base: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5 21.5 12 12 21.5 2.5 12z"/></svg>',
+  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>',
+  runner: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="15" cy="4" r="2.4"/><path d="M13.2 7.2 8.8 8.6 6.6 12.3l1.8 1 1.7-2.8 2-.6-1.8 5.1-3.2 4.2 1.7 1.4 3.6-4.6 2.3 2.2V23h2.2v-6.3l-2.6-2.6 1.1-3.3 1.2 1.7 3.5.8.5-2-2.8-.7-2.1-3.3c-.6-.9-1.6-1.3-2.5-1.1z"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"><path d="M4 4.5A2 2 0 0 1 6 2.5h14v16H6a2 2 0 0 0-2 2z"/><path d="M4 20.5a2 2 0 0 0 2 2h14v-4"/><path d="M9 7.5h7M9 11h5" stroke-linecap="round"/></svg>',
+  brain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3.5a3 3 0 0 0-3 3 3 3 0 0 0-2.5 4.5A3.5 3.5 0 0 0 6 17.5a3 3 0 0 0 3.5 3V3.5zM14.5 3.5a3 3 0 0 1 3 3 3 3 0 0 1 2.5 4.5 3.5 3.5 0 0 1-2 6.5 3 3 0 0 1-3.5 3V3.5z"/></svg>',
   glove: '<svg viewBox="0 0 40 40"><path fill="#e07a3f" d="M13 35c-6-3.5-8-11-6-20 1-4.5 5-5 6-1.5l1 5 .6-10c.2-4 5-4 5.3 0l.6 9.4 1-10.4c.4-4 5.2-3.6 5.2.3l-.2 10.4 2-7c1.2-3.8 6-2.5 5.2 1.3L31 23c2.6-1.8 5.6.4 4 3.3-3 5.5-8 9.7-15 10z"/><path fill="none" stroke="#b85f2c" stroke-width="1.6" stroke-linecap="round" d="M14.5 19c3 2.5 9 2.5 13 .5M13 27c4 3 10 3 15 0"/></svg>',
 };
 
@@ -31,64 +43,20 @@ function icon(name) {
 }
 
 // ---------- Skip, the mascot ----------
-// A baseball-headed coach ("Skip" = what players call the manager), drawn like a 1930s
-// rubber-hose cartoon: thick ink outlines, pie-cut eyes, heavy brows, a big grin. Inspired
-// by the big-ball-head mascot the family loves, but his own guy: navy cap, orange "H".
-// moods: happy (default), cheer (eyes squeezed, mouth wide open), oops (worried), think.
+// Jay's Heads Up brand art (retro rubber-hose cartoon). Heads for reactions, full-body
+// poses for the bigger moments. These are cut from the brand sheet for now; swap in clean
+// exports at the same paths and nothing else changes.
+// Old mood names still work: happy, cheer, oops, think.
 
-const INK = '#141414';
-
-function pieEye(cx, cy, dx = 0, dy = 0) {
-  // a black oval with the classic wedge cut out of it, pupils nudged by dx/dy
-  const x = cx + dx;
-  const y = cy + dy;
-  return `<ellipse cx="${x}" cy="${y}" rx="6.8" ry="10" fill="${INK}"/>
-    <path d="M${x + 0.5} ${y - 0.5} L${x + 1.8} ${y - 10.5} L${x + 7.5} ${y - 4.5} Z" fill="#fbf4e4"/>`;
-}
+const SKIP_MOODS = { cheer: 'excited', oops: 'surprised', think: 'thinking' };
 
 function skipSvg(mood = 'happy', extraClass = '') {
-  const face = {
-    happy: `
-      <path d="M38 59q8-6 16-1M66 58q8-5 16 1" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      ${pieEye(47, 73)}${pieEye(73, 73)}
-      <path d="M37 88Q60 114 83 88Q60 96 37 88Z" fill="${INK}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M41 89.5Q60 96 79 89.5L77 93Q60 98 43 93Z" fill="#ffffff"/>
-      <path d="M51 101Q60 95 69 101Q60 107 51 101Z" fill="#e5484d"/>
-      <path d="M34 84q4 2 4 7M86 84q-4 2-4 7" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
-    cheer: `
-      <path d="M36 57q9-8 18-2M66 55q9-6 18 2" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      <path d="M39 75q8-11 16 0M65 75q8-11 16 0" stroke="${INK}" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M36 84Q60 118 84 84Q60 92 36 84Z" fill="${INK}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M40 86Q60 92 80 86L78 91Q60 96 42 91Z" fill="#ffffff"/>
-      <path d="M49 101Q60 93 71 101Q60 108 49 101Z" fill="#e5484d"/>
-      <path d="M32 80q4 3 4 8M88 80q-4 3-4 8" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
-    oops: `
-      <path d="M39 61q7-7 15-6M66 55q8-1 15 6" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      ${pieEye(47, 74, 0, -2)}${pieEye(73, 74, 0, -2)}
-      <path d="M46 96q5-6 10 0t10 0t9-1" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M93 54q6 9 1 13q-6 2-6-4q0-4 5-9z" fill="#8fd3ff" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`,
-    think: `
-      <path d="M38 62q8-3 16-1M66 58q8-6 16 0" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      ${pieEye(47, 74, 3, -1)}${pieEye(73, 73, 3, -1)}
-      <path d="M50 95q11 4 22-4" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      <path d="M71 89q4 1 3 6" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
-  }[mood];
-  const stitch = (d, ticks) => `<path d="${d}" stroke="#d6303a" stroke-width="2.6" fill="none" stroke-linecap="round"/>${ticks
-    .map(([x, y, a]) => `<path d="M${x - 3} ${y - 2}l3 2l-3 2" transform="rotate(${a} ${x} ${y})" stroke="#d6303a" stroke-width="2" fill="none" stroke-linecap="round"/>`).join('')}`;
-  return `<svg class="skip ${extraClass}" viewBox="0 0 120 120" aria-hidden="true">
-    <circle cx="60" cy="69" r="41" fill="#fbf4e4" stroke="${INK}" stroke-width="4.5"/>
-    <path d="M30 98q14 12 34 10" stroke="#e6dcc4" stroke-width="6" fill="none" stroke-linecap="round"/>
-    ${stitch('M27 60q11 17 1 36', [[29, 66, 200], [31, 75, 180], [31, 84, 165]])}
-    ${stitch('M93 60q-11 17-1 36', [[91, 66, -20], [89, 75, 0], [89, 84, 15]])}
-    <g transform="translate(0 -6)">
-    <path d="M21 54Q19 14 60 12Q101 14 99 54Z" fill="#1d3f8f" stroke="${INK}" stroke-width="4.5" stroke-linejoin="round"/>
-    <path d="M32 40Q36 22 54 18" stroke="#4d73c9" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M13 55Q60 41 107 55Q60 68 13 55Z" fill="#ff6b1a" stroke="${INK}" stroke-width="4.5" stroke-linejoin="round"/>
-    <circle cx="60" cy="12" r="5" fill="#ff6b1a" stroke="${INK}" stroke-width="3.5"/>
-    <text x="61" y="45" text-anchor="middle" font-family="'Barlow Condensed', system-ui, sans-serif" font-style="italic" font-weight="900" font-size="25" fill="#ff6b1a" stroke="${INK}" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">H</text>
-    </g>
-    <g transform="translate(0 3)">${face}</g>
-  </svg>`;
+  const name = SKIP_MOODS[mood] || mood;
+  return `<img class="skip ${extraClass}" src="img/skip/head-${name}.png" alt="" draggable="false">`;
+}
+
+function poseImg(pose, extraClass = '') {
+  return `<img class="pose ${extraClass}" src="img/skip/pose-${pose}.png" alt="" draggable="false">`;
 }
 
 // ---------- sound ----------
@@ -132,7 +100,7 @@ function playSound(kind) {
 function brandHtml() {
   return `
     <button type="button" class="brand" data-action="brand-tap" aria-label="Heads Up">
-      <span class="brand-word">Heads <span>Up</span></span>
+      <img class="brand-logo" src="img/logo.png" alt="Heads Up Baseball IQ" draggable="false">
     </button>
   `;
 }
@@ -255,8 +223,8 @@ function renderConnectScreen() {
     <div class="focus">
       <div class="focus-center">
         <div class="focus-center-inner">
-          ${skipSvg('happy', 'skip-hello')}
-          <h1 class="h1">Heads Up</h1>
+          <img class="splash-logo" src="img/logo.png" alt="Heads Up Baseball IQ">
+          <div class="splash-art">${poseImg('coaching', 'skip-hello')}<div class="splash-bubble">Smart players see more.</div></div>
           <p class="body">One-time setup: connect the app to its private data store.</p>
           <form id="connect-form" class="focus-center-inner" style="gap:14px">
             <label class="field-label">Gist ID
@@ -265,7 +233,7 @@ function renderConnectScreen() {
             <label class="field-label">Access Token
               <input type="password" id="input-token" class="input" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" spellcheck="false" required />
             </label>
-            <button type="submit" class="btn btn-orange btn-block" ${busy ? 'disabled' : ''}>${busy ? 'Connecting…' : 'Connect'}</button>
+            <button type="submit" class="btn btn-red btn-block" ${busy ? 'disabled' : ''}>${busy ? 'Connecting…' : 'Connect'}</button>
           </form>
           ${statusHtml()}
           <p class="small">This only needs to be done once on Owen's iPad.</p>
@@ -828,61 +796,119 @@ function lessonOuts(lesson) {
 function outsHtml(outs, label = true) {
   let lights = '';
   for (let i = 0; i < OUTS_PER_INNING; i++) lights += `<span class="out-light ${i < outs ? 'out-light-on' : ''}"></span>`;
-  return `<span class="outs" aria-label="${outs} of ${OUTS_PER_INNING} outs">${label ? '<span class="outs-label">OUTS</span>' : ''}${lights}</span>`;
+  return `<span class="outs" aria-label="${outs} of ${OUTS_PER_INNING} outs">${label ? '<span class="outs-label">Outs</span>' : ''}${lights}</span>`;
 }
 
-function barHtml(pct, gold = false) {
-  return `<div class="bar"><div class="bar-fill ${gold ? 'bar-fill-gold' : ''} ${pct === 0 ? 'bar-fill-zero' : ''}" style="width:${pct}%"></div></div>`;
+function barHtml(pct, color = null) {
+  const gold = color === true;
+  const style = typeof color === 'string' ? `;background:${color}` : '';
+  return `<div class="bar"><div class="bar-fill ${gold ? 'bar-fill-gold' : ''} ${pct === 0 ? 'bar-fill-zero' : ''}" style="width:${pct}%${style}"></div></div>`;
 }
 
-/** Streak / XP / mastered — shown as top-bar chips on phone, a stat row on iPad, and cards
- *  in the right rail on wide screens. */
+/** Streak / XP / mastered — top-bar chips on phone, cards in the right rail on wide screens. */
 function iqNumbers() {
   const iq = iqState();
   const today = todayKey();
   return { iq, today, streak: displayStreak(iq, today), totals: masteryTotals(iq), ...rankFor(iq.xp) };
 }
 
-function statRowHtml() {
-  const n = iqNumbers();
+// Each unit gets its own color + icon, like the skill categories in the brand mockups.
+const UNIT_STYLE = {
+  u1: { color: '#e6392d', icon: 'eye' },
+  u2: { color: '#f08a24', icon: 'bat' },
+  u3: { color: '#2fa84f', icon: 'mitt' },
+  u4: { color: '#12a594', icon: 'base' },
+  u5: { color: '#0ea5e9', icon: 'diamond' },
+  u6: { color: '#6366f1', icon: 'target' },
+  u7: { color: '#2f6fe0', icon: 'runner' },
+  u8: { color: '#e0a400', icon: 'bolt' },
+  u9: { color: '#8b5cf6', icon: 'book' },
+  u10: { color: '#64748b', icon: 'brain' },
+};
+function unitStyle(unit) {
+  return UNIT_STYLE[unit.id] || { color: '#e6392d', icon: 'ball' };
+}
+
+// Pro Tips: one a day, original lines in Skip's voice.
+const PRO_TIPS = [
+  'Good players react. Smart players anticipate.',
+  'Know the outs, the count and the runners before every pitch.',
+  'Ask "what if it\'s hit to me?" before the pitcher comes set.',
+  'Never make the first or third out at third base.',
+  'Two outs? Run on contact. No waiting.',
+  'Hit the cutoff man. Keep the double play in order.',
+  'The ball is faster than any runner. Throw ahead of him.',
+  'Loud calls win. If you call it, catch it.',
+  'Back up every throw like it\'s getting by.',
+  'A walk is as good as a single. Make him throw strikes.',
+  'Watch the ball off the bat before you take off.',
+  'Next pitch. Whatever just happened is over.',
+];
+function proTipHtml(today) {
+  const [y, m, d] = today.split('-').map(Number);
+  const dayIndex = Math.floor(new Date(y, m - 1, d).getTime() / 86400000);
+  const tip = PRO_TIPS[((dayIndex % PRO_TIPS.length) + PRO_TIPS.length) % PRO_TIPS.length];
   return `
-    <div class="stat-row only-ipad">
-      <div class="stat"><span style="color:var(--clay)">${icon('flame')}</span><div class="stat-text"><div class="stat-num">${n.streak}</div><div class="stat-label">day streak</div></div></div>
-      <div class="stat"><span style="color:var(--gold)">${icon('bolt')}</span><div class="stat-text"><div class="stat-num">${n.iq.xp}</div><div class="stat-label">XP · ${escapeHtml(n.rank.title)}</div></div></div>
-      <div class="stat"><span style="color:var(--green)">${icon('star')}</span><div class="stat-text"><div class="stat-num">${n.totals.mastered}<small>/${n.totals.total}</small></div><div class="stat-label">mastered</div></div></div>
-    </div>
+    <section class="tip-card">
+      ${skipSvg('wink', 'tip-skip')}
+      <div class="tip-label">Pro Tip</div>
+      <p class="tip-text">“${escapeHtml(tip)}”</p>
+      <div class="tip-sign">— Skip</div>
+    </section>
+  `;
+}
+
+function streakCardHtml(n) {
+  const week = weekPlayed(n.iq, n.today);
+  const days = week.map((d) => `
+    <div class="wk-day ${d.played ? 'wk-played' : ''} ${d.isToday ? 'wk-today' : ''} ${d.future ? 'wk-future' : ''}">
+      <span class="wk-label">${d.label}</span>
+      <span class="wk-dot">${d.played ? icon('check') : ''}</span>
+    </div>`).join('');
+  const playedToday = n.iq.lastPlayed === n.today;
+  return `
+    <section class="card streak-card">
+      <div class="streak-top">
+        <div>
+          <h2 class="h2">${n.streak ? 'Keep it going!' : 'Start a streak!'}</h2>
+          <div class="small">${playedToday ? 'Today\'s done. See you tomorrow.' : 'One lesson a day keeps the streak alive.'}</div>
+        </div>
+        <div class="streak-big ${n.streak ? '' : 'streak-big-dim'}">${icon('flame')}<span>${n.streak}</span></div>
+      </div>
+      <div class="wk">${days}</div>
+      <div class="streak-foot"><span>Day streak</span><span>Best: ${n.iq.longestStreak}</span></div>
+    </section>
+  `;
+}
+
+function rankCardHtml(n) {
+  const toNext = n.next ? Math.round(((n.iq.xp - n.rank.xp) / (n.next.xp - n.rank.xp)) * 100) : 100;
+  return `
+    <section class="card">
+      <div class="eyebrow">Rank</div>
+      <div class="rank-big">${icon('shield')}<span>${escapeHtml(n.rank.title)}</span></div>
+      ${barHtml(toNext, true)}
+      <div class="small">${n.next ? `${n.next.xp - n.iq.xp} XP to ${escapeHtml(n.next.title)}` : 'Top rank: Field General.'}</div>
+    </section>
   `;
 }
 
 function railHtml() {
   const n = iqNumbers();
-  const toNext = n.next ? Math.round(((n.iq.xp - n.rank.xp) / (n.next.xp - n.rank.xp)) * 100) : 100;
   return `
-    <div class="card">
-      <div class="reward">
-        <div class="reward-icon" style="color:var(--clay)">${icon('flame')}</div>
-        <div class="reward-body">
-          <div class="stat-num">${n.streak} day streak</div>
-          <div class="small">Best: ${n.iq.longestStreak}. Play one lesson a day to keep it going.</div>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="eyebrow">Rank</div>
-      <div class="h2">${escapeHtml(n.rank.title)}</div>
-      ${barHtml(toNext, true)}
-      <div class="small">${n.next ? `${n.next.xp - n.iq.xp} XP to ${escapeHtml(n.next.title)}` : 'Top rank — Field General.'}</div>
-    </div>
+    ${streakCardHtml(n)}
+    ${rankCardHtml(n)}
     ${IQ_REWARDS.map((r) => rewardCardHtml(r, n.totals)).join('')}
+    ${proTipHtml(n.today)}
   `;
 }
 
 // ---------- app shell ----------
 
 const NAV = [
-  { view: 'iqHome', label: 'Play', icon: 'diamond' },
+  { view: 'iqHome', label: 'Home', icon: 'home' },
   { view: 'iqRewards', label: 'Rewards', icon: 'trophy' },
-  { view: 'iqMe', label: PLAYER_NAME, icon: 'person' },
+  { view: 'iqMe', label: 'Profile', icon: 'person' },
   ...(PRACTICE_ENABLED ? [{ view: 'home', label: 'Practice', icon: 'bat' }] : []),
 ];
 
@@ -891,24 +917,29 @@ function navActive(item) {
   return item.view === view;
 }
 
+function chipsHtml(n) {
+  return `
+    <div class="chips">
+      <span class="chip-stat ${n.streak ? 'chip-streak' : 'chip-dim'}" aria-label="${n.streak} day streak">${icon('flame')}${n.streak}</span>
+      <span class="chip-stat chip-xp" aria-label="${n.iq.xp} XP">${icon('gem')}${n.iq.xp}</span>
+    </div>
+  `;
+}
+
 function shellHtml(mainHtml) {
   const n = gistState ? iqNumbers() : null;
   return `
     <div class="shell">
       <header class="topbar">
         ${brandHtml()}
-        ${n ? `
-          <div class="chips">
-            <span class="chip-stat ${n.streak ? 'chip-streak' : 'chip-dim'}" aria-label="${n.streak} day streak">${icon('flame')}${n.streak}</span>
-            <span class="chip-stat chip-xp" aria-label="${n.iq.xp} XP">${icon('bolt')}${n.iq.xp}</span>
-          </div>
-        ` : ''}
+        ${n ? chipsHtml(n) : ''}
       </header>
       <nav class="sidebar" aria-label="Main">
         ${brandHtml()}
         ${NAV.map((item) => `
           <button class="side-link ${navActive(item) ? 'side-link-active' : ''}" data-action="nav" data-value="${item.view}">${icon(item.icon)}<span>${escapeHtml(item.label)}</span></button>
         `).join('')}
+        <div class="side-tag">Play. Learn.<br>Think. Improve.</div>
       </nav>
       <main class="main"><div class="main-inner">${mainHtml}</div></main>
       ${n ? `<aside class="rail">${railHtml()}</aside>` : ''}
@@ -921,7 +952,7 @@ function shellHtml(mainHtml) {
   `;
 }
 
-// ---------- game iq: play (home + the path) ----------
+// ---------- game iq: home ----------
 
 function currentConceptId(iq, statuses) {
   const fresh = freshConceptIds(iq, todayKey());
@@ -947,7 +978,7 @@ function renderIqHome() {
   const currentId = currentConceptId(iq, statuses);
   const n = iqNumbers();
 
-  let mood = 'happy';
+  let pose = 'batting';
   let kicker;
   let title;
   let line;
@@ -956,37 +987,46 @@ function renderIqHome() {
     kicker = 'Mid-inning';
     title = 'Finish the at-bat';
     line = 'You left a lesson in the middle. Pick it back up.';
-    buttons = '<button class="btn btn-white" data-action="iq-resume">Resume</button>';
+    buttons = '<button class="btn btn-red" data-action="iq-resume">Resume</button>';
   } else if (inningOver) {
-    mood = 'oops';
+    pose = 'coaching';
     kicker = 'Three outs';
     title = 'Fix your mistakes';
     line = 'Get the misses right and you\'re back in the game.';
-    buttons = '<button class="btn btn-white" data-action="iq-start-review">Fix them</button>';
+    buttons = '<button class="btn btn-red" data-action="iq-start-review">Fix them</button>';
   } else {
     const lesson = buildLesson(iq, today);
     kicker = `${playedToday ? 'Another at-bat' : 'Today\'s at-bat'} · ${lesson.length} plays`;
     title = 'Read the play';
     line = playedToday
       ? `Nice work today, ${escapeHtml(PLAYER_NAME)}. Want another round?`
-      : `Heads up, ${escapeHtml(PLAYER_NAME)}. Situations from all over the field. Make the right call.`;
-    buttons = `<button class="btn btn-white" data-action="iq-start-play" ${lesson.length ? '' : 'disabled'}>${playedToday ? 'Play again' : 'Play ball'}</button>`;
+      : 'Situations from all over the field. Make the right call.';
+    buttons = `<button class="btn btn-red" data-action="iq-start-play" ${lesson.length ? '' : 'disabled'}>${playedToday ? 'Play again' : 'Play ball'}</button>`;
   }
 
   return `
-    ${statRowHtml()}
+    <div class="welcome">
+      <h1 class="h1">Welcome back, ${escapeHtml(PLAYER_NAME)}!</h1>
+      <div class="welcome-tag">Play. Learn. Think. Improve.</div>
+    </div>
     <section class="hero-card ${inningOver && !iqLesson ? 'hero-over' : ''}">
-      ${skipSvg(mood, 'skip-hello')}
-      <div class="hero-kicker">${kicker}</div>
-      <h2 class="hero-title">${escapeHtml(title)}</h2>
-      <p class="hero-line">${line}</p>
-      <div class="hero-row">${outsHtml(outs)}${buttons}</div>
-      ${!inningOver && !iqLesson && iq.missed.length ? `<button class="link-btn hero-sub-btn" data-action="iq-start-review">Fix mistakes (${iq.missed.length}) →</button>` : ''}
+      <div class="hero-sun" aria-hidden="true"></div>
+      ${poseImg(pose, 'hero-pose')}
+      <div class="hero-copy">
+        <div class="hero-kicker">${kicker}</div>
+        <h2 class="hero-title">${escapeHtml(title)}</h2>
+        <p class="hero-line">${line}</p>
+        <div class="hero-outs">${outsHtml(outs)}</div>
+        <div class="hero-row">${buttons}</div>
+        ${!inningOver && !iqLesson && iq.missed.length ? `<button class="link-btn hero-sub-btn" data-action="iq-start-review">Fix mistakes (${iq.missed.length}) ›</button>` : ''}
+      </div>
     </section>
-    <div class="section-head"><span>Your season</span><span>Rank: ${escapeHtml(n.rank.title)}</span></div>
+    <div class="hide-wide">${streakCardHtml(n)}</div>
+    <div class="section-head"><span>My progress</span><span>${n.totals.mastered} of ${n.totals.total} mastered</span></div>
     <div class="season">
       ${statuses.map((s, i) => unitHtml(s, i, iq, currentId, inningOver)).join('')}
     </div>
+    <div class="hide-wide">${proTipHtml(today)}</div>
     ${statusHtml()}
   `;
 }
@@ -996,28 +1036,28 @@ let expandedUnit = null;
 
 function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOver) {
   const pct = total ? Math.round((mastered / total) * 100) : 0;
-  const num = status === 'mastered' ? icon('star') : status === 'locked' ? icon('lock') : String(i + 1);
+  const style = unitStyle(unit);
   const sub = {
     coming: 'Coming soon',
-    locked: 'Unlocks after the unit before it',
     mastered: `All ${total} mastered`,
-    open: `${mastered} of ${total} mastered · ${escapeHtml(unit.subtitle)}`,
+    open: `${mastered}/${total} mastered · ${escapeHtml(unit.subtitle)}`,
   }[status];
   const hasCurrent = unit.concepts.some((c) => c.id === currentId);
   const expanded = (status === 'open' || status === 'mastered') && (expandedUnit ? expandedUnit === unit.id : hasCurrent);
   const tag = status === 'coming' ? 'div' : 'button';
   const head = `
     <${tag} class="lvl-head" ${tag === 'button' ? `data-action="toggle-unit" data-value="${unit.id}" aria-expanded="${expanded}"` : ''}>
-      <div class="lvl-num">${num}</div>
+      <div class="lvl-num" style="background:${style.color}">${icon(status === 'mastered' ? 'star' : style.icon)}</div>
       <div class="lvl-body">
         <div class="lvl-title">${escapeHtml(unit.title)}</div>
         <div class="lvl-sub">${sub}</div>
-        ${status === 'open' || status === 'mastered' ? barHtml(pct, false) : ''}
+        ${status === 'open' || status === 'mastered' ? barHtml(pct, style.color) : ''}
       </div>
-      ${tag === 'button' ? `<span class="lvl-chev ${expanded ? 'lvl-chev-open' : ''}">›</span>` : ''}
+      ${tag === 'button' ? `<span class="lvl-chev ${expanded ? 'lvl-chev-open' : ''}">${icon('chevron')}</span>` : ''}
     </${tag}>
   `;
-  if (!expanded) return `<section class="lvl lvl-${status} ${hasCurrent ? 'lvl-current' : ''}">${head}</section>`;
+  const current = hasCurrent ? 'lvl-current' : '';
+  if (!expanded) return `<section class="lvl lvl-${status} ${current}" style="--unit:${style.color}">${head}</section>`;
 
   // The open unit lists its situations ("plays"): pips show progress toward mastery.
   const plays = unit.concepts.map((c) => {
@@ -1025,7 +1065,7 @@ function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOve
     const box = st?.box ?? 0;
     const kind = st && box >= MASTERED_BOX ? 'gold' : st ? 'progress' : 'todo';
     const isCurrent = c.id === currentId && !iqLesson;
-    const glyph = kind === 'gold' ? icon('star') : icon('ball');
+    const glyph = kind === 'gold' ? icon('star') : kind === 'progress' ? icon('check') : '';
     let pips = '';
     for (let k = 0; k < MASTERED_BOX; k++) pips += `<span class="pip ${k < box ? 'pip-on' : ''}"></span>`;
     const flag = isCurrent
@@ -1039,7 +1079,7 @@ function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOve
       </button>
     `;
   }).join('');
-  return `<section class="lvl lvl-${status} lvl-current">${head}<div class="plays">${plays}</div></section>`;
+  return `<section class="lvl lvl-${status} ${current} lvl-expanded" style="--unit:${style.color}">${head}<div class="plays">${plays}</div></section>`;
 }
 
 // ---------- game iq: rewards + me ----------
@@ -1051,6 +1091,7 @@ function rewardCardHtml(reward, totals) {
     <div class="card reward ${earned ? 'reward-earned' : ''}">
       <div class="reward-icon">${icon('glove')}</div>
       <div class="reward-body">
+        <div class="eyebrow">${earned ? 'Earned!' : 'The big prize'}</div>
         <div class="h2">${escapeHtml(reward.title)}</div>
         <div class="small">${escapeHtml(reward.requirement)}</div>
         ${barHtml(pct, true)}
@@ -1060,16 +1101,45 @@ function rewardCardHtml(reward, totals) {
   `;
 }
 
+// Badges: milestones that unlock on their own as he plays.
+function badgeList(n) {
+  const statuses = unitStatuses(n.iq, n.today);
+  const unitDone = (id) => statuses.find((s) => s.unit.id === id)?.status === 'mastered';
+  return [
+    { title: 'Rookie', blurb: 'Finish your first lesson', icon: 'ball', color: '#e6392d', earned: n.iq.lessonsCompleted >= 1 },
+    { title: 'Streak Star', blurb: '7 day streak', icon: 'flame', color: '#f08a24', earned: n.iq.longestStreak >= 7 },
+    { title: 'Heads Up', blurb: 'Master 10 situations', icon: 'eye', color: '#2f6fe0', earned: n.totals.mastered >= 10 },
+    { title: 'Base Stealer', blurb: 'Master Leads & Steals', icon: 'bolt', color: '#e0a400', earned: unitDone('u8') },
+    { title: 'Gold Glove', blurb: 'Master Outfield', icon: 'mitt', color: '#2fa84f', earned: unitDone('u3') },
+    { title: 'Rule Book', blurb: 'Master Know the Rules', icon: 'book', color: '#8b5cf6', earned: unitDone('u9') },
+    { title: 'Big Thinker', blurb: 'Reach All-Star rank', icon: 'brain', color: '#0ea5e9', earned: n.iq.xp >= 800 },
+    { title: 'IQ Master', blurb: 'Master every situation', icon: 'gem', color: '#12a594', earned: n.totals.total > 0 && n.totals.mastered === n.totals.total },
+  ];
+}
+
 function renderIqRewards() {
   const n = iqNumbers();
+  const badges = badgeList(n);
   return `
-    <h1 class="h1">Rewards</h1>
-    <p class="body">Real gear for real baseball IQ. Mastering a situation takes right answers on different days, so there's no cramming. You have to actually know it.</p>
-    ${IQ_REWARDS.map((r) => rewardCardHtml(r, n.totals)).join('')}
-    <div class="card">
-      <div class="coach">${skipSvg('think')}<div class="bubble">More rewards are on the way. Keep stacking days.</div></div>
+    <div class="page-head">
+      <div>
+        <h1 class="h1">Rewards</h1>
+        <p class="body">Real gear for real baseball IQ. Mastering a situation takes right answers on different days, so there's no cramming.</p>
+      </div>
+      ${poseImg('throwing', 'page-pose')}
     </div>
-    <h2 class="h2">Ranks</h2>
+    ${IQ_REWARDS.map((r) => rewardCardHtml(r, n.totals)).join('')}
+    <div class="section-head"><span>Badges</span><span>${badges.filter((b) => b.earned).length} of ${badges.length}</span></div>
+    <div class="badges">
+      ${badges.map((b) => `
+        <div class="badge ${b.earned ? 'badge-earned' : ''}" style="--badge:${b.color}">
+          <div class="badge-shield">${icon(b.icon)}</div>
+          <div class="badge-title">${escapeHtml(b.title)}</div>
+          <div class="badge-blurb">${escapeHtml(b.blurb)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="section-head"><span>Ranks</span><span>${n.iq.xp} XP</span></div>
     <div class="rank-list">
       ${RANKS.map((r) => {
         const cls = r.title === n.rank.title ? 'rank-row-current' : n.iq.xp >= r.xp ? 'rank-row-done' : '';
@@ -1087,24 +1157,39 @@ function renderIqMe() {
   const accuracy = answered ? Math.round((right / answered) * 100) : 0;
   const statuses = unitStatuses(n.iq, n.today);
   return `
-    <div class="profile">${skipSvg('happy')}<div><h1 class="h1">${escapeHtml(PLAYER_NAME)}</h1><div class="small">${escapeHtml(n.rank.title)} · ${n.iq.xp} XP</div></div></div>
+    <div class="profile">
+      <div class="profile-avatar">${skipSvg('cool')}</div>
+      <div>
+        <h1 class="h1">${escapeHtml(PLAYER_NAME)}</h1>
+        <div class="small">${escapeHtml(n.rank.title)} · ${n.iq.lessonsCompleted} lessons played</div>
+      </div>
+    </div>
+    <div class="stat-tiles">
+      <div class="stat-tile"><span class="stat-ico" style="color:#f08a24">${icon('flame')}</span><div class="stat-num">${n.streak}</div><div class="stat-label">Day streak</div></div>
+      <div class="stat-tile"><span class="stat-ico" style="color:#4f8cff">${icon('gem')}</span><div class="stat-num">${n.iq.xp}</div><div class="stat-label">XP</div></div>
+      <div class="stat-tile"><span class="stat-ico" style="color:var(--gold)">${icon('shield')}</span><div class="stat-num stat-num-sm">${escapeHtml(n.rank.title)}</div><div class="stat-label">Rank</div></div>
+    </div>
+    <div class="section-head"><span>Skill progress</span><span>${n.totals.mastered}/${n.totals.total}</span></div>
     <div class="card">
-      <div class="list-row"><span>Lessons played</span><strong>${n.iq.lessonsCompleted}</strong></div>
+      ${statuses.filter((s) => s.total > 0).map((s) => {
+        const st = unitStyle(s.unit);
+        return `
+          <div class="skill-row">
+            <span class="skill-ico" style="background:${st.color}">${icon(st.icon)}</span>
+            <div class="skill-body">
+              <div class="skill-top"><span>${escapeHtml(s.unit.title)}</span><strong>${s.mastered}/${s.total}</strong></div>
+              ${barHtml(s.total ? Math.round((s.mastered / s.total) * 100) : 0, st.color)}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+    <div class="section-head"><span>Stats</span></div>
+    <div class="card">
       <div class="list-row"><span>Answers right</span><strong>${right} of ${answered}${answered ? ` (${accuracy}%)` : ''}</strong></div>
       <div class="list-row"><span>Situations mastered</span><strong>${n.totals.mastered} of ${n.totals.total}</strong></div>
-      <div class="list-row"><span>Current streak</span><strong>${n.streak}</strong></div>
       <div class="list-row"><span>Best streak</span><strong>${n.iq.longestStreak}</strong></div>
     </div>
-    <h2 class="h2">By unit</h2>
-    <div class="card">
-      ${statuses.filter((s) => s.total > 0).map((s) => `
-        <div class="list-row" style="flex-direction:column;align-items:stretch;gap:6px">
-          <div style="display:flex;justify-content:space-between"><span>${escapeHtml(s.unit.title)}</span><strong>${s.mastered}/${s.total}</strong></div>
-          ${barHtml(s.total ? Math.round((s.mastered / s.total) * 100) : 0)}
-        </div>
-      `).join('')}
-    </div>
-    <h2 class="h2">Settings</h2>
+    <div class="section-head"><span>Settings</span></div>
     <div class="card">
       <div class="list-row"><span>Sound effects</span><button class="switch ${soundOn ? 'switch-on' : ''}" data-action="toggle-sound" role="switch" aria-checked="${soundOn}" aria-label="Sound effects"></button></div>
     </div>
@@ -1272,7 +1357,8 @@ function bugHtml(sit) {
   return cells.length ? `<div class="bug">${cells.join('')}</div>` : '';
 }
 
-const RIGHT_LINES = ['Heads-up play!', 'Nice read!', 'That\'s baseball IQ.', 'You knew it.', 'Smart ballplayer!'];
+const RIGHT_LINES = ['Correct!', 'Nice read!', 'Heads up!', 'You knew it!', 'Smart play!'];
+const RIGHT_FACES = ['excited', 'laughing', 'wink', 'happy', 'cool'];
 
 function renderIqLesson() {
   const lesson = iqLesson;
@@ -1281,7 +1367,7 @@ function renderIqLesson() {
       <div class="focus"><div class="focus-center"><div class="focus-center-inner">
         ${skipSvg('think', 'skip-hello')}
         <h1 class="h1">${busy ? 'Saving…' : 'Lesson done'}</h1>
-        ${busy ? '' : '<button class="btn btn-orange btn-block" data-action="iq-retry-save">Save my results</button>'}
+        ${busy ? '' : '<button class="btn btn-red btn-block" data-action="iq-retry-save">Save my results</button>'}
         ${statusHtml()}
       </div></div></div>
     `;
@@ -1297,6 +1383,8 @@ function renderIqLesson() {
   const outs = lessonOuts(lesson);
   const done = lesson.index + (answered ? 1 : 0);
   const pct = Math.round((done / lesson.cards.length) * 100);
+  const unit = IQ_UNITS.find((u) => u.concepts.some((c) => c.id === concept.id));
+  const ustyle = unit ? unitStyle(unit) : null;
 
   const choices = card.order.map((i, pos) => {
     let cls = '';
@@ -1305,26 +1393,29 @@ function renderIqLesson() {
       else if (i === selected) cls = 'choice-wrong';
       else cls = 'choice-faded';
     } else if (i === pending) cls = 'choice-picked';
-    return `<button class="choice ${cls}" data-action="iq-pick" data-value="${i}" ${answered ? 'disabled' : ''}><span class="choice-key">${pos + 1}</span><span>${escapeHtml(resolved.choices[i])}</span></button>`;
+    return `<button class="choice ${cls}" data-action="iq-pick" data-value="${i}" ${answered ? 'disabled' : ''}><span class="choice-key">${'ABCDEF'[pos]}</span><span>${escapeHtml(resolved.choices[i])}</span></button>`;
   }).join('');
 
   let footer;
   if (!answered) {
     footer = `<footer class="footer"><div class="footer-inner">
       <span class="small only-wide-hint">${pending === null ? 'Pick an answer' : 'Locked in?'}</span>
-      <button class="btn btn-orange btn-block" data-action="iq-check" ${pending === null ? 'disabled' : ''}>Check</button>
+      <button class="btn btn-red btn-block" data-action="iq-check" ${pending === null ? 'disabled' : ''}>Check</button>
     </div></footer>`;
   } else {
     const inningEnds = !correct && lesson.mode === 'play' && outs >= OUTS_PER_INNING;
-    const title = correct ? RIGHT_LINES[lesson.index % RIGHT_LINES.length] : lesson.mode === 'play' ? (inningEnds ? 'Strike three. Inning\'s over.' : 'That\'s an out.') : 'Not quite.';
+    const title = correct ? RIGHT_LINES[lesson.index % RIGHT_LINES.length] : lesson.mode === 'play' ? (inningEnds ? 'Inning\'s over!' : 'That\'s an out!') : 'Not quite!';
+    const face = correct ? RIGHT_FACES[lesson.index % RIGHT_FACES.length] : inningEnds ? 'gameface' : 'surprised';
     const nextLabel = inningEnds ? 'End inning' : lesson.index === lesson.cards.length - 1 ? 'Finish' : 'Continue';
     footer = `<footer class="footer ${correct ? 'footer-right' : 'footer-wrong'}"><div class="footer-inner">
       <div class="feedback">
-        ${skipSvg(correct ? 'cheer' : 'oops')}
-        <div>
+        ${skipSvg(face, 'feedback-skip')}
+        <div class="feedback-main">
           <p class="feedback-title">${title}</p>
-          ${correct ? '' : `<p class="feedback-why"><strong>Answer:</strong> ${escapeHtml(resolved.choices[resolved.answer])}</p>`}
-          <p class="feedback-why">${escapeHtml(concept.why)}</p>
+          <div class="feedback-note">
+            ${correct ? '' : `<p class="feedback-answer">${icon('close')}<span><strong>Answer:</strong> ${escapeHtml(resolved.choices[resolved.answer])}</span></p>`}
+            <p class="feedback-why">${escapeHtml(concept.why)}</p>
+          </div>
         </div>
       </div>
       <button class="btn ${correct ? 'btn-correct' : 'btn-red'} btn-block" data-action="iq-next">${nextLabel}</button>
@@ -1344,7 +1435,7 @@ function renderIqLesson() {
           ${hasSit ? `<div class="lesson-col situation">${bugHtml(resolved.sit)}<div class="field-card">${fieldSvg(resolved.sit)}</div></div>` : ''}
           <div class="lesson-col">
             <div class="tags">
-              <span class="tag">${escapeHtml(concept.title)}</span>
+              <span class="tag" ${ustyle ? `style="--tag:${ustyle.color}"` : ''}>${unit ? `${icon(ustyle.icon)}${escapeHtml(unit.title)}` : escapeHtml(concept.title)}</span>
               ${concept.realPlay ? '<span class="tag tag-real">From your season</span>' : ''}
             </div>
             <h1 class="prompt">${escapeHtml(resolved.prompt)}</h1>
@@ -1361,30 +1452,32 @@ function renderIqResult() {
   const r = iqResult;
   let title;
   let body;
-  let mood = 'cheer';
+  let art;
   if (!r.completed) {
-    mood = 'oops';
-    title = 'Three outs. Inning\'s over.';
+    art = skipSvg('determined', 'result-skip');
+    title = 'Three outs!';
     body = 'Every great hitter strikes out. Fix your mistakes to start a new inning, or come back tomorrow.';
   } else if (r.mode === 'review') {
-    title = 'Mistakes fixed. New inning!';
-    body = 'That\'s how you get better: go back to what you missed until it sticks.';
+    art = poseImg('running', 'result-pose');
+    title = 'Mistakes fixed!';
+    body = 'New inning. That\'s how you get better: go back to what you missed until it sticks.';
   } else {
+    art = r.correct === r.total ? skipSvg('laughing', 'result-skip') : poseImg('coaching', 'result-pose');
     title = r.correct === r.total ? 'Perfect lesson!' : 'Lesson complete!';
     body = 'These come back later, worded differently. Know it, don\'t memorize it.';
   }
   return `
-    <div class="focus"><div class="focus-center"><div class="focus-center-inner">
-      ${skipSvg(mood, 'skip-hello')}
-      <h1 class="h1">${title}</h1>
+    <div class="focus result"><div class="focus-center"><div class="focus-center-inner">
+      <div class="result-art"><div class="result-burst" aria-hidden="true"></div>${art}</div>
+      <h1 class="h1 result-title ${r.completed ? '' : 'result-title-red'}">${title}</h1>
       <p class="body">${body}</p>
       <div class="tiles">
-        <div class="tile tile-green"><div class="tile-label">Right</div><div class="tile-value">${r.correct}/${r.total}</div></div>
-        <div class="tile tile-gold"><div class="tile-label">XP</div><div class="tile-value">+${r.xpEarned}</div></div>
-        <div class="tile tile-clay"><div class="tile-label">Streak</div><div class="tile-value">${r.streak}</div></div>
+        <div class="tile tile-green">${icon('check')}<div class="tile-value">${r.correct}/${r.total}</div><div class="tile-label">Right</div></div>
+        <div class="tile tile-blue">${icon('gem')}<div class="tile-value">+${r.xpEarned}</div><div class="tile-label">XP</div></div>
+        <div class="tile tile-orange">${icon('flame')}<div class="tile-value">${r.streak}</div><div class="tile-label">Streak</div></div>
       </div>
       ${!r.completed ? '<button class="btn btn-red btn-block" data-action="iq-start-review">Fix my mistakes</button>' : ''}
-      <button class="btn ${r.completed ? 'btn-orange' : 'btn-ghost'} btn-block" data-action="nav" data-value="iqHome">${r.completed ? 'Continue' : 'Back to the season'}</button>
+      <button class="btn ${r.completed ? 'btn-red' : 'btn-ghost'} btn-block" data-action="nav" data-value="iqHome">${r.completed ? 'Continue' : 'Back home'}</button>
     </div></div></div>
   `;
 }
@@ -1403,7 +1496,7 @@ function render() {
   else if (view === 'onboarding') html = shellHtml(renderOnboarding());
   else if (view === 'home') html = shellHtml(renderHome());
   else if (view === 'day') html = shellHtml(renderDayStep());
-  else html = `<div class="focus"><div class="focus-center"><div class="focus-center-inner">${skipSvg('think', 'skip-hello')}<p class="body">Loading…</p></div></div></div>`;
+  else html = `<div class="focus"><div class="focus-center"><div class="focus-center-inner"><img class="splash-logo" src="img/logo.png" alt="Heads Up Baseball IQ">${poseImg('batting', 'skip-hello splash-pose')}<p class="body">Loading…</p></div></div></div>`;
   root.innerHTML = html + toastHtml();
 }
 

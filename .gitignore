@@ -3,3 +3,6 @@ node_modules/
 
 # Book screenshots/notes for Game IQ (copyrighted source material, never commit)
 _books/
+
+# Brand sheet + mockup originals (large source art, kept local)
+_brand/
