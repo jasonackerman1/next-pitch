@@ -1,9 +1,17 @@
-var CACHE_NAME = 'next-pitch-cache-v2';
-var NETWORK_FIRST_FILES = ['./', './index.html', './css/style.css', './js/app.js', './js/state.js', './js/gist.js', './js/data.js', './manifest.json'];
+var CACHE_NAME = 'heads-up-cache-v7';
+var NETWORK_FIRST_FILES = ['./', './index.html', './css/style.css', './js/app.js', './js/state.js', './js/gist.js', './js/data.js', './js/iq.js', './js/iq-content.js', './manifest.json'];
 
 var SHELL_FILES = NETWORK_FIRST_FILES.concat([
   './icons/icon-180.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './fonts/barlow-500.woff2',
+  './fonts/barlow-600.woff2',
+  './fonts/barlow-700.woff2',
+  './fonts/barlow-condensed-700.woff2',
+  './fonts/barlow-condensed-800.woff2',
+  './fonts/barlow-condensed-900.woff2',
+  './fonts/barlow-condensed-800i.woff2',
+  './fonts/barlow-condensed-900i.woff2'
 ]);
 
 self.addEventListener('install', function (event) {
@@ -15,7 +23,7 @@ self.addEventListener('install', function (event) {
           // silently satisfied by the browser's own HTTP cache (same gap as the fetch handler
           // below), which would defeat "always precache the current version".
           return cache.add(new Request(url, { cache: 'no-store' })).catch(function (err) {
-            console.warn('Owen Hitting SW: could not precache', url, err);
+            console.warn('Heads Up SW: could not precache', url, err);
           });
         })
       );

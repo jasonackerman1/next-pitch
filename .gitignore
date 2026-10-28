@@ -1,2 +1,5 @@
 .DS_Store
 node_modules/
+
+# Book screenshots/notes for Game IQ (copyrighted source material, never commit)
+_books/

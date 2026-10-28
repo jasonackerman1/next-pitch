@@ -1,4 +1,69 @@
-# Next Pitch — Project Status
+# Heads Up (formerly Next Pitch) — Project Status
+
+## Book pass: Baseball IQ for Kids and Teens (2026-10-28, NOT yet committed or deployed)
+
+Jay added 52 screenshots of the Amazon sample (pp. 1–48: rules, positions, most of the baserunning chapters) to `_books/` (git-ignored, never commit). 23 new situations written in our own words: Baserunning additions, a new **Leads & Steals** unit (u8; 4 existing lead/steal concepts moved in, ids unchanged so progress is safe), a new **Know the Rules** unit (u9), 3 Outfield (wall then ball, when to let a foul drop, get it to the infield), and the hit-and-run. Reset is now u10. Total: 86 situations / 258 cards, 29 marked for the coach. Deliberately skipped the book's "angle your slide at the throw" tip because GHVBL is avoid-contact. The rest of the book (hitting, infield, outfield, pitching, catching) is not in the sample; its table of contents is a good topic list. `sw.js` cache v7.
+
+## Content + Skip round 2 (2026-10-28, NOT yet committed or deployed)
+
+Jay: questions felt basic and repetitive; he wants a wide variety of position scenarios ("you're in right, man on second, fly ball..."). Added 5 units: Outfield (10), First Base (9), Up the Middle 2B/SS (7), Around the Diamond P/C/3B (6), Baserunning (14). Reset moved to u8, still empty (book material). Now 63 situations / 189 cards. Variants are different situations, not rewordings. **Engine change:** no unit locking. Every written unit is open and new situations are dealt round-robin across units (`freshConceptIds` in iq.js), so a lesson mixes positions. The season list collapses units (tap to open). Skip redrawn as a 1930s rubber-hose cartoon (ink outlines, pie-cut eyes, big grin); icons regenerated. `sw.js` cache v6. Card list for coach review regenerated in `game-iq-cards-review.md` (🧢 = coach should confirm).
+
+## Look: "Primetime" (2026-10-28, NOT yet committed or deployed)
+
+Replaces the Fresh Grass look below the same day; Jay didn't love it, picked direction A of 3 mockups. A night game under the lights: navy sky with stadium-light glow, Mets orange primary, Barlow Condensed broadcast type (bundled in `fonts/`, OFL-licensed, cached by the service worker), dark only. Play screen = orange "today's at-bat" card + units as a list of levels, open unit shows each situation with mastery pips and an UP NEXT flag. Lessons show a TV-style count bug (count / outs / runners / you) over the field. Skip got a navy cap with an orange H; app icon regenerated. Verified headless at 375/390/820/1180/1440 widths, full lesson + three-outs → review flow, zero errors. `sw.js` cache v5.
+
+## Rebrand + responsive redesign: "Heads Up" (2026-10-28, look superseded by Primetime above)
+
+Jay dropped the Street Drop look (a mobile-only column that read as a "mohawk of content" on
+desktop) for a clean, fun, Duolingo-inspired, baseball-themed design, with Apple's HIG as the
+tiebreaker. Decided by direct questions: name **Heads Up** (from "heads-up baseball"),
+mascot **Skip** (an original baseball-headed coach, a nod to Mr. Met, in a clay "H" cap),
+**Fresh Grass** palette, and "just build it" (no mockup round).
+
+- `css/style.css` fully replaced. Tokens on `:root` with automatic dark mode, the system rounded
+  font (`ui-rounded` = SF Pro Rounded on Apple, Nunito elsewhere), chunky 3D press-down buttons,
+  44pt+ tap targets, safe areas, and reduced motion.
+- Responsive shell: phone = top bar (streak/XP chips) + bottom tab bar; 768px+ = left sidebar;
+  1180px+ = right stats rail (streak, rank, glove). Tabs: Play, Rewards, Owen (Me).
+- Play = a Today card (Skip + speech bubble + outs lights) and a Duolingo-style zigzag path:
+  one node per concept, a progress ring per mastery box, gold star when mastered, locks, and a
+  bouncing PLAY flag.
+- Lessons are full-screen: pick → Check → a green/red feedback sheet with Skip's reaction.
+  Keyboard 1–4 + Enter. On 1024px+, the situation is on the left and the answers on the right.
+  Situations draw as a real ballpark (grass, dirt, bases, runner tokens, pulsing blue YOU) under
+  a scoreboard with ball/strike/out lights.
+- Synthesized sound effects (WebAudio, no files), toggle on the Me tab.
+- New icons rendered from Skip's SVG, manifest renamed with the portrait lock removed, SW
+  cache `heads-up-cache-v4`. The repo folder, Gist file name, and localStorage keys keep the
+  next-pitch names on purpose (renaming would orphan saved data).
+- Verified with headless Chromium at 390, 820, 1180, and 1440 widths plus dark mode, a
+  full lesson, the inning-over → review flow, and zero console errors.
+
+
+## Game IQ (built 2026-10-28, NOT yet committed or deployed)
+
+A Duolingo-style baseball-knowledge game, now the whole app at launch. `PRACTICE_ENABLED = false`
+in `js/data.js` hides the Reset Play onboarding + daily practice flow (code and data untouched;
+flip to `true` to bring them back, with Game IQ as a card on the practice home).
+
+- **Content:** `js/iq-content.js`. Units → concepts → 3 variants each (different wording,
+  format, or situation). Units 1–2 written (17 concepts, 51 cards); Units 3–6 show as "Coming
+  Soon". Rules cards checked against the GHVBL 11U/12U rulebook (NFHS-based). Two cards come
+  from Owen's real plays. `game-iq-cards-review.md` = readable list for Jay/coach review,
+  generated from the content file. `game-iq-concepts.md` = the full concept plan for all 6 units.
+- **Engine:** `js/iq.js`, pure functions. Spaced repetition (boxes 0–4, intervals 1/3/7/14
+  days, one move per concept per day, so mastery takes at least 11 days); a miss drops two boxes.
+  Each lesson = due reviews + up to 3 new concepts, 5 cards. Choices shuffle, variants rotate.
+- **Outs, not hearts:** each wrong answer is an out, three outs ends the inning and locks new
+  lessons until a Fix-Your-Mistakes review (misses requeue reworded, cost no outs) or tomorrow.
+- **XP, ranks** (Rookie → Field General), a Game IQ day streak, and a rewards panel
+  (`IQ_REWARDS`: first baseman's glove for mastering every unit; smaller rewards TBD).
+- **Saving:** one Gist write per lesson (`gameIq` key, replayed via `applyLesson` inside
+  `commitMutation`). The in-progress lesson lives in localStorage (`next-pitch:iqLesson`), so
+  reloading resumes it, outs included.
+- **Verified:** Node engine checks + headless Chromium against a mocked Gist (full lesson,
+  mid-lesson reload, inning over, review clearing outs). Zero console errors.
+
 
 **Status: Full "Street Drop" visual identity built into the real app
 (2026-08-20), smoke-tested, committed, pushed, live on GitHub Pages.

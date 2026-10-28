@@ -4,6 +4,7 @@
 const CREDENTIALS_KEY = 'next-pitch:credentials';
 const CACHED_STATE_KEY = 'next-pitch:cachedState';
 const DRAFT_DAY_KEY = 'next-pitch:draftDay';
+const IQ_LESSON_KEY = 'next-pitch:iqLesson';
 
 export function loadCredentials() {
   const raw = localStorage.getItem(CREDENTIALS_KEY);
@@ -57,4 +58,25 @@ export function saveDraftDay(draft) {
 
 export function clearDraftDay() {
   localStorage.removeItem(DRAFT_DAY_KEY);
+}
+
+/** In-progress Game IQ lesson — same idea as the draft day: answers aren't pushed to the
+ *  Gist until the lesson ends, but closing the app mid-lesson resumes it (outs included)
+ *  instead of letting a bad lesson be quietly thrown away. */
+export function loadIqLesson() {
+  const raw = localStorage.getItem(IQ_LESSON_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function saveIqLesson(lesson) {
+  localStorage.setItem(IQ_LESSON_KEY, JSON.stringify(lesson));
+}
+
+export function clearIqLesson() {
+  localStorage.removeItem(IQ_LESSON_KEY);
 }

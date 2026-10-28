@@ -1,3 +1,5 @@
+import { emptyIqState } from './iq.js';
+
 // The 8-day content set from the build spec. Sequence-based, not calendar-based —
 // day 9 reuses index 0, day 10 reuses index 1, etc. (see getContentForDayIndex in app.js).
 //
@@ -72,12 +74,23 @@ export const TEAM_PRACTICE_TYPE_OPTIONS = [
   'Something else',
 ];
 
+// Launch switch. Owen starts with Game IQ only (decided 2026-10-28) — handing him a
+// practice tracker first reads as "more work". While false, the app opens straight to
+// Game IQ and the Reset Play onboarding + daily practice flow stay hidden (their data and
+// code are untouched). Flip to true to bring the practice side back, with Game IQ as a
+// card on its home screen.
+export const PRACTICE_ENABLED = false;
+
+// Single-player app — Skip talks to Owen by name.
+export const PLAYER_NAME = 'Owen';
+
 export function emptyState() {
   return {
     resetRoutine: null,
     days: [],
     currentStreak: 0,
     longestStreak: 0,
+    gameIq: emptyIqState(),
   };
 }
 
