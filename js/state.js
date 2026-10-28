@@ -1,5 +1,6 @@
 // Local device storage. All localStorage reads/writes go through here.
-// Single-user app (Owen) — no player identity, no commissioner gate.
+// One player per device. Credentials are either { mode: 'local' } (progress saved on this
+// device only, no setup) or { token, gistId } (synced to a secret Gist, e.g. Owen's iPad).
 
 const CREDENTIALS_KEY = 'next-pitch:credentials';
 const CACHED_STATE_KEY = 'next-pitch:cachedState';
@@ -16,8 +17,8 @@ export function loadCredentials() {
   }
 }
 
-export function saveCredentials({ token, gistId }) {
-  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({ token, gistId }));
+export function saveCredentials(creds) {
+  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(creds));
 }
 
 export function clearCredentials() {

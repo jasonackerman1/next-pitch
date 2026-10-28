@@ -1,4 +1,4 @@
-var CACHE_NAME = 'heads-up-cache-v8';
+var CACHE_NAME = 'heads-up-cache-v9';
 var NETWORK_FIRST_FILES = ['./', './index.html', './css/style.css', './js/app.js', './js/state.js', './js/gist.js', './js/data.js', './js/iq.js', './js/iq-content.js', './manifest.json'];
 
 var SHELL_FILES = NETWORK_FIRST_FILES.concat([

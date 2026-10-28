@@ -1,5 +1,14 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
+## First-launch tour + name + share-ready (2026-10-28, NOT yet committed or deployed)
+
+Jay asked how a new player learns the app, noticed "Owen" was hard-coded, and wants to share it with other players. Decisions: **progress saves on each player's device** (no setup), and an **in-app tour first** (a HyperFrames video can come later for sharing with families).
+- New welcome screen: **Get started** = local mode (`creds = { mode: 'local' }`, state in localStorage, zero GitHub calls). "Sync with a Gist instead" reveals the old Gist form. Owen's iPad keeps its Gist creds and is unaffected.
+- All writes go through `saveState(mutate)` (local or Gist). Name lives in `state.profile = { name, tourDone }`, synced with the rest of the data. `PLAYER_NAME` is now only the "Player" fallback.
+- 5-step Skip tour (name → read the play → three outs → master it → streaks/XP), shown whenever `profile.tourDone` is false: first launch, Owen's existing Gist (no profile yet), and after the triple-tap reset. Replay from Profile → Settings.
+- Local-mode limit: progress is lost if the player deletes the app or switches devices.
+- Verified headless: name required, tour → home greets by name, progress survives reload, local mode makes zero GitHub calls, Gist mode saves the name and keeps existing XP. `sw.js` cache v9.
+
 ## Look: "Ballpark Classic", from Jay's brand sheet (2026-10-28, NOT yet committed or deployed)
 
 Jay supplied a brand sheet (logo lockups, retro rubber-hose mascot heads/poses, palette navy #0E2A47 / red #E6392D / cream #F5EBD7) and phone + web mockups. Originals saved in `_brand/` (git-ignored). Replaces Primetime below. **Kept our game rules over the mockups** (Jay's call): outs not hearts, no leaderboard, nothing locked, drawn field diagrams. Art is **cut from the sheets for now** (`img/skip/head-*.png`, `pose-*.png`, `img/logo.png`, icons cropped from the mockup's red app icon); Jay will send clean transparent exports later. Swapping files at the same paths needs no code change. The big full-body mascot couldn't be cut (navy cap on navy background).

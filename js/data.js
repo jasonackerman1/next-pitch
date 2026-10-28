@@ -82,7 +82,9 @@ export const TEAM_PRACTICE_TYPE_OPTIONS = [
 export const PRACTICE_ENABLED = false;
 
 // Single-player app — Skip talks to Owen by name.
-export const PLAYER_NAME = 'Owen';
+// The player's name comes from the first-launch tour (state.profile.name); this is only
+// the fallback before they've typed one.
+export const PLAYER_NAME = 'Player';
 
 export function emptyState() {
   return {
@@ -91,6 +93,7 @@ export function emptyState() {
     currentStreak: 0,
     longestStreak: 0,
     gameIq: emptyIqState(),
+    profile: { name: null, tourDone: false },
   };
 }
 

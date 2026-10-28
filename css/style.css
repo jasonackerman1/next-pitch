@@ -1308,3 +1308,31 @@ div.lvl-head { cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- first-launch tour ---------- */
+
+.tour .focus-center-inner { gap: 14px; }
+.tour-logo { width: min(240px, 66%); }
+.tour-art { align-self: center; display: flex; justify-content: center; }
+.tour-pose { height: 170px; width: auto; animation: pop-in 0.4s cubic-bezier(.2, 1.6, .4, 1); }
+.tour-head { width: 140px; height: 140px; animation: pop-in 0.4s cubic-bezier(.2, 1.6, .4, 1); }
+.tour-demo {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  pointer-events: none;
+}
+.tour-demo .choice { min-height: 48px; }
+.tour-demo .play { border: none; padding: 4px 2px; min-height: 40px; }
+.tour-center { align-items: center; }
+.tour-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.tour-form { display: flex; flex-direction: column; }
+.tour-dots { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
+.tour-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.2); transition: width 0.2s; }
+.tour-dot-on { width: 24px; background: var(--red); }
+.btn-sm { min-height: 40px; padding: 6px 14px; font-size: 1.05rem; }

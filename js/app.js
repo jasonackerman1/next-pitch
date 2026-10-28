@@ -144,6 +144,11 @@ let view = 'loading';
 let statusMessage = '';
 let statusIsError = false;
 let busy = false;
+let connectShowGist = false;
+
+// first-launch tour
+let tourStep = 0;
+let tourName = '';
 
 let onboardingStep = 1;
 let onboardingDraft = { action: null, phrase: null, triggers: [] };
@@ -167,13 +172,48 @@ function statusHtml() {
 
 // ---------- boot ----------
 
+function isLocal() {
+  return creds?.mode === 'local';
+}
+
+/** Every write goes through here: local mode saves on this device, Gist mode runs the
+ *  race-safe fetch → mutate → write → confirm cycle. Same mutate(fresh) => newState shape. */
+async function saveState(mutate) {
+  if (isLocal()) {
+    const newState = mutate(structuredClone(gistState || emptyState()));
+    saveCachedState(newState);
+    return newState;
+  }
+  return commitMutation(creds.token, creds.gistId, mutate);
+}
+
+function playerName() {
+  return gistState?.profile?.name || PLAYER_NAME;
+}
+
 async function boot() {
   if (!creds) {
     view = 'connect';
     render();
     return;
   }
+  if (isLocal()) {
+    gistState = loadCachedState() || emptyState();
+    routeAfterLoad();
+    render();
+    return;
+  }
   await refreshFromGist({ silent: true });
+}
+
+function startLocal() {
+  creds = { mode: 'local' };
+  saveCredentials(creds);
+  gistState = loadCachedState() || emptyState();
+  saveCachedState(gistState);
+  setStatus('');
+  routeAfterLoad();
+  render();
 }
 
 async function refreshFromGist({ silent } = {}) {
@@ -206,6 +246,12 @@ function routeAfterLoad() {
     return;
   }
   if (!PRACTICE_ENABLED) {
+    if (!gistState.profile?.tourDone) {
+      tourStep = 0;
+      tourName = gistState.profile?.name || '';
+      view = 'tour';
+      return;
+    }
     view = 'iqHome';
     return;
   }
@@ -225,7 +271,8 @@ function renderConnectScreen() {
         <div class="focus-center-inner">
           <img class="splash-logo" src="img/logo.png" alt="Heads Up Baseball IQ">
           <div class="splash-art">${poseImg('coaching', 'skip-hello')}<div class="splash-bubble">Smart players see more.</div></div>
-          <p class="body">One-time setup: connect the app to its private data store.</p>
+          ${connectShowGist ? `
+          <p class="body">Sync this device to a private GitHub Gist so progress is backed up.</p>
           <form id="connect-form" class="focus-center-inner" style="gap:14px">
             <label class="field-label">Gist ID
               <input type="text" id="input-gist-id" class="input" placeholder="e.g. 8f2c1a9b..." autocomplete="off" autocapitalize="off" spellcheck="false" required />
@@ -235,8 +282,13 @@ function renderConnectScreen() {
             </label>
             <button type="submit" class="btn btn-red btn-block" ${busy ? 'disabled' : ''}>${busy ? 'Connecting…' : 'Connect'}</button>
           </form>
+          <button class="link-btn" style="align-self:center" data-action="connect-toggle">‹ Back</button>
+          ` : `
+          <p class="body">Baseball IQ, one play at a time. Read the situation, make the smart call, and get better every day.</p>
+          <button class="btn btn-red btn-block" data-action="start-local">Get started</button>
+          <button class="link-btn" style="align-self:center" data-action="connect-toggle">Sync with a Gist instead</button>
+          `}
           ${statusHtml()}
-          <p class="small">This only needs to be done once on Owen's iPad.</p>
         </div>
       </div>
     </div>
@@ -410,7 +462,7 @@ async function saveResetRoutine() {
       triggers: onboardingDraft.triggers,
       createdAt: new Date().toISOString().slice(0, 10),
     };
-    const newState = await commitMutation(creds.token, creds.gistId, (fresh) => {
+    const newState = await saveState((fresh) => {
       fresh.resetRoutine = routine;
       return fresh;
     });
@@ -547,7 +599,7 @@ async function resetAllData() {
   render();
   try {
     const fresh = emptyState();
-    const newState = await commitMutation(creds.token, creds.gistId, () => fresh);
+    const newState = await saveState(() => fresh);
     gistState = newState;
     saveCachedState(newState);
     clearDraftDay();
@@ -561,7 +613,7 @@ async function resetAllData() {
     iqLesson = null;
     iqResult = null;
     busy = false;
-    view = PRACTICE_ENABLED ? 'onboarding' : 'iqHome';
+    routeAfterLoad();
   } catch (err) {
     busy = false;
     setStatus(err instanceof GistError ? err.message : String(err), true);
@@ -737,7 +789,7 @@ async function submitCheckin() {
   };
 
   try {
-    const newState = await commitMutation(creds.token, creds.gistId, (fresh) => {
+    const newState = await saveState((fresh) => {
       const { streak, longest } = nextStreak(fresh, finishedDay.completedAt);
       fresh.days.push(finishedDay);
       fresh.currentStreak = streak;
@@ -780,6 +832,120 @@ function nextStreak(state, newCompletedAt) {
   const streak = gapDays <= 1 ? (state.currentStreak || 0) + 1 : 1;
   const longest = Math.max(streak, state.longestStreak || 0);
   return { streak, longest };
+}
+
+// ---------- first-launch tour ----------
+// Skip walks a new player through the app: name, how a play works, outs, mastery, and
+// streaks + rewards. Replayable from Profile. Only "done" (and the name) are saved.
+
+const TOUR_STEPS = 5;
+
+function tourDemoPlay() {
+  return `
+    <div class="tour-demo">
+      <div class="bug"><div class="bug-cell bug-count"><span class="bug-label">Count</span>1-1</div><div class="bug-cell"><span class="bug-label">Outs</span>1</div><div class="bug-cell"><span class="bug-label">You</span>Right field</div></div>
+      <div class="choices">
+        <div class="choice"><span class="choice-key">A</span><span>Throw home</span></div>
+        <div class="choice choice-picked"><span class="choice-key">B</span><span>Hit the cutoff man</span></div>
+      </div>
+    </div>`;
+}
+
+function renderTour() {
+  const name = tourName.trim();
+  const step = tourStep;
+  const dots = Array.from({ length: TOUR_STEPS }, (_, i) => `<span class="tour-dot ${i === step ? 'tour-dot-on' : ''}"></span>`).join('');
+  let art;
+  let title;
+  let body;
+  let extra = '';
+  if (step === 0) {
+    art = `<div class="splash-art">${poseImg('coaching', 'skip-hello')}<div class="splash-bubble">Hey! I'm Skip.</div></div>`;
+    title = 'I\'m your coach';
+    body = 'Heads Up teaches you to think the game: where to throw, when to run, what to do before the pitch. First, what should I call you?';
+    extra = `
+      <form id="tour-form" class="tour-form">
+        <label class="field-label">Your first name
+          <input type="text" id="tour-name" class="input" maxlength="20" value="${escapeHtml(tourName)}" placeholder="First name" autocomplete="given-name" autocapitalize="words" spellcheck="false" />
+        </label>
+      </form>`;
+  } else if (step === 1) {
+    art = poseImg('fielding', 'tour-pose');
+    title = 'Read the play';
+    body = 'Every question is a game situation: the count, the outs, the runners, and where YOU are. Pick the smart call, then tap Check.';
+    extra = tourDemoPlay();
+  } else if (step === 2) {
+    art = skipSvg('surprised', 'tour-head');
+    title = 'Three outs';
+    body = 'A wrong answer is an out. Three outs and the inning\'s over until you fix your mistakes. A new day always starts a new inning.';
+    extra = `<div class="tour-demo tour-center">${outsHtml(2)}</div>`;
+  } else if (step === 3) {
+    art = skipSvg('thinking', 'tour-head');
+    title = 'Master it';
+    body = 'Get a situation right on different days to fill its 4 bars. No cramming. It has to stick. The same idea comes back worded differently, so know it, don\'t memorize it.';
+    extra = `<div class="tour-demo"><div class="play play-progress" style="--unit:#2fa84f"><span class="play-icon">${icon('check')}</span><span class="play-title">Hit the cutoff man</span><span class="pips"><span class="pip pip-on"></span><span class="pip pip-on"></span><span class="pip"></span><span class="pip"></span></span></div></div>`;
+  } else {
+    art = poseImg('running', 'tour-pose');
+    title = name ? `Let's go, ${escapeHtml(name)}!` : 'Let\'s go!';
+    body = 'Play one lesson a day to build your streak. Earn XP to climb from Rookie to Field General, and unlock badges along the way.';
+    extra = `<div class="tour-demo tour-center"><div class="tour-chips"><span class="chip-stat chip-streak">${icon('flame')}1</span><span class="chip-stat chip-xp">${icon('gem')}55</span><span class="chip-stat"><span style="color:var(--gold)">${icon('shield')}</span>Rookie</span></div></div>`;
+  }
+  const last = step === TOUR_STEPS - 1;
+  return `
+    <div class="focus tour"><div class="focus-center"><div class="focus-center-inner">
+      ${step === 0 ? '<img class="splash-logo tour-logo" src="img/logo.png" alt="Heads Up Baseball IQ">' : ''}
+      <div class="tour-art">${art}</div>
+      <h1 class="h1">${title}</h1>
+      <p class="body">${body}</p>
+      ${extra}
+      <div class="tour-dots">${dots}</div>
+      <button class="btn btn-red btn-block" data-action="tour-next" ${busy ? 'disabled' : ''}>${busy ? 'Saving…' : last ? 'Play ball' : 'Next'}</button>
+      ${step > 0 ? '<button class="link-btn" style="align-self:center" data-action="tour-back">‹ Back</button>' : ''}
+      ${statusHtml()}
+    </div></div></div>
+  `;
+}
+
+function tourNext() {
+  if (tourStep === 0) {
+    const input = document.getElementById('tour-name');
+    tourName = (input ? input.value : tourName).trim().slice(0, 20);
+    if (!tourName) {
+      setStatus('Type your first name to keep going.', true);
+      render();
+      document.getElementById('tour-name')?.focus();
+      return;
+    }
+  }
+  setStatus('');
+  if (tourStep < TOUR_STEPS - 1) {
+    tourStep += 1;
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
+  finishTour();
+}
+
+async function finishTour() {
+  busy = true;
+  render();
+  try {
+    const name = tourName;
+    const newState = await saveState((fresh) => {
+      fresh.profile = { ...(fresh.profile || {}), name, tourDone: true };
+      return fresh;
+    });
+    gistState = newState;
+    saveCachedState(newState);
+    busy = false;
+    view = 'iqHome';
+  } catch (err) {
+    busy = false;
+    setStatus(`Couldn't save. Check the connection and try again. (${err instanceof GistError ? err.message : String(err)})`, true);
+  }
+  render();
+  window.scrollTo(0, 0);
 }
 
 // ---------- game iq: shared pieces ----------
@@ -999,14 +1165,14 @@ function renderIqHome() {
     kicker = `${playedToday ? 'Another at-bat' : 'Today\'s at-bat'} · ${lesson.length} plays`;
     title = 'Read the play';
     line = playedToday
-      ? `Nice work today, ${escapeHtml(PLAYER_NAME)}. Want another round?`
+      ? `Nice work today, ${escapeHtml(playerName())}. Want another round?`
       : 'Situations from all over the field. Make the right call.';
     buttons = `<button class="btn btn-red" data-action="iq-start-play" ${lesson.length ? '' : 'disabled'}>${playedToday ? 'Play again' : 'Play ball'}</button>`;
   }
 
   return `
     <div class="welcome">
-      <h1 class="h1">Welcome back, ${escapeHtml(PLAYER_NAME)}!</h1>
+      <h1 class="h1">Welcome back, ${escapeHtml(playerName())}!</h1>
       <div class="welcome-tag">Play. Learn. Think. Improve.</div>
     </div>
     <section class="hero-card ${inningOver && !iqLesson ? 'hero-over' : ''}">
@@ -1095,7 +1261,7 @@ function rewardCardHtml(reward, totals) {
         <div class="h2">${escapeHtml(reward.title)}</div>
         <div class="small">${escapeHtml(reward.requirement)}</div>
         ${barHtml(pct, true)}
-        <div class="small">${earned ? 'Earned! Go tell Dad.' : `${totals.mastered} of ${totals.total} mastered${totals.allUnitsWritten ? '' : ' · more units drop this winter'}`}</div>
+        <div class="small">${earned ? 'Earned! Go claim it.' : `${totals.mastered} of ${totals.total} mastered${totals.allUnitsWritten ? '' : ' · more units drop this winter'}`}</div>
       </div>
     </div>
   `;
@@ -1160,7 +1326,7 @@ function renderIqMe() {
     <div class="profile">
       <div class="profile-avatar">${skipSvg('cool')}</div>
       <div>
-        <h1 class="h1">${escapeHtml(PLAYER_NAME)}</h1>
+        <h1 class="h1">${escapeHtml(playerName())}</h1>
         <div class="small">${escapeHtml(n.rank.title)} · ${n.iq.lessonsCompleted} lessons played</div>
       </div>
     </div>
@@ -1191,6 +1357,7 @@ function renderIqMe() {
     </div>
     <div class="section-head"><span>Settings</span></div>
     <div class="card">
+      <div class="list-row"><span>How Heads Up works</span><button class="btn btn-ghost btn-sm" data-action="tour-replay">Replay tour</button></div>
       <div class="list-row"><span>Sound effects</span><button class="switch ${soundOn ? 'switch-on' : ''}" data-action="toggle-sound" role="switch" aria-checked="${soundOn}" aria-label="Sound effects"></button></div>
     </div>
   `;
@@ -1259,7 +1426,7 @@ async function finishIqLesson() {
   render();
   try {
     let xpEarned = 0;
-    const newState = await commitMutation(creds.token, creds.gistId, (fresh) => {
+    const newState = await saveState((fresh) => {
       const result = applyLesson(fresh.gameIq, payload, today);
       fresh.gameIq = result.iq;
       xpEarned = result.xpEarned;
@@ -1488,6 +1655,7 @@ function render() {
   let html;
   if (view === 'connect') html = renderConnectScreen();
   else if (view === 'confirmReset') html = renderConfirmReset();
+  else if (view === 'tour') html = renderTour();
   else if (view === 'iqLesson') html = renderIqLesson();
   else if (view === 'iqResult') html = renderIqResult();
   else if (view === 'iqHome') html = shellHtml(renderIqHome());
@@ -1552,6 +1720,27 @@ function handleAction(action, value) {
     case 'save-reset-routine':
       saveResetRoutine();
       return;
+    case 'start-local':
+      startLocal();
+      return;
+    case 'connect-toggle':
+      connectShowGist = !connectShowGist;
+      setStatus('');
+      break;
+    case 'tour-next':
+      tourNext();
+      return;
+    case 'tour-back':
+      tourStep = Math.max(0, tourStep - 1);
+      setStatus('');
+      break;
+    case 'tour-replay':
+      tourStep = 0;
+      tourName = gistState?.profile?.name || '';
+      setStatus('');
+      view = 'tour';
+      window.scrollTo(0, 0);
+      break;
     case 'brand-tap':
       // Hidden: triple-tap the logo to reach the reset-everything screen.
       if (!creds) return;
@@ -1689,6 +1878,10 @@ root.addEventListener('click', (e) => {
 
 root.addEventListener('submit', (e) => {
   if (e.target.id === 'connect-form') handleConnectSubmit(e);
+  else if (e.target.id === 'tour-form') {
+    e.preventDefault();
+    tourNext();
+  }
 });
 
 // Keep typed text in sync with draft state as it's typed, not just read once at submit —
