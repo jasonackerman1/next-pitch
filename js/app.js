@@ -2,6 +2,9 @@ import { loadCredentials, saveCredentials, loadCachedState, saveCachedState, loa
 import { fetchState, commitMutation, seedState, GistError } from './gist.js';
 import { emptyState, getContentForDayIndex, PRACTICE_ENABLED, PLAYER_NAME, RESET_ACTION_OPTIONS, RESET_PHRASE_OPTIONS, RESET_TRIGGER_OPTIONS, HOME_PRACTICE_TYPE_OPTIONS, TEAM_PRACTICE_TYPE_OPTIONS } from './data.js';
 import { IQ_REWARDS, IQ_UNITS } from './iq-content.js';
+import { PLAYS } from './iq-plays.js';
+import { fieldHtml, syncField } from './field.js';
+import { syncVoice, replayVoice, stopVoice, voiceOn, setVoiceOn } from './voice.js';
 import {
   OUTS_PER_INNING, MASTERED_BOX, RANKS, todayKey, normalizeIq, outsToday, rankFor, conceptById, resolveVariant,
   unitStatuses, freshConceptIds, masteryTotals, makeCard, buildLesson, buildReviewLesson, applyLesson, displayStreak, weekPlayed,
@@ -22,6 +25,8 @@ const ICONS = {
   bat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M18.5 3.5 7 15" stroke-width="4.5"/><path d="M7 15l-2.5 2.5" stroke-width="2"/><circle cx="3.6" cy="18.4" r="1.6" fill="currentColor" stroke="none"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h.5A1.5 1.5 0 0 1 19 11.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-8A1.5 1.5 0 0 1 6.5 10zm2.5 0h5V7.5a2.5 2.5 0 0 0-5 0z"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"/></svg>',
+  speaker: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.3 6.3a8 8 0 0 1 0 11.4"/></svg>',
+  speakerOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
@@ -44,19 +49,19 @@ function icon(name) {
 
 // ---------- Skip, the mascot ----------
 // Jay's Heads Up brand art (retro rubber-hose cartoon). Heads for reactions, full-body
-// poses for the bigger moments. These are cut from the brand sheet for now; swap in clean
-// exports at the same paths and nothing else changes.
+// poses for the bigger moments. Source art lives in _brand/art/ (local only);
+// tools/process_art.py resizes it into img/.
 // Old mood names still work: happy, cheer, oops, think.
 
 const SKIP_MOODS = { cheer: 'excited', oops: 'surprised', think: 'thinking' };
 
 function skipSvg(mood = 'happy', extraClass = '') {
   const name = SKIP_MOODS[mood] || mood;
-  return `<img class="skip ${extraClass}" src="img/skip/head-${name}.png" alt="" draggable="false">`;
+  return `<img class="skip ${extraClass}" src="img/skip/head-${name}.webp" alt="" draggable="false">`;
 }
 
 function poseImg(pose, extraClass = '') {
-  return `<img class="pose ${extraClass}" src="img/skip/pose-${pose}.png" alt="" draggable="false">`;
+  return `<img class="pose ${extraClass}" src="img/skip/pose-${pose}.webp" alt="" draggable="false">`;
 }
 
 // ---------- sound ----------
@@ -100,7 +105,7 @@ function playSound(kind) {
 function brandHtml() {
   return `
     <button type="button" class="brand" data-action="brand-tap" aria-label="Heads Up">
-      <img class="brand-logo" src="img/logo.png" alt="Heads Up Baseball IQ" draggable="false">
+      <img class="brand-logo" src="img/logo.webp" alt="Heads Up Baseball IQ" draggable="false">
     </button>
   `;
 }
@@ -269,8 +274,8 @@ function renderConnectScreen() {
     <div class="focus">
       <div class="focus-center">
         <div class="focus-center-inner">
-          <img class="splash-logo" src="img/logo.png" alt="Heads Up Baseball IQ">
-          <div class="splash-art">${poseImg('coaching', 'skip-hello')}<div class="splash-bubble">Smart players see more.</div></div>
+          <img class="splash-logo" src="img/logo.webp" alt="Heads Up Baseball IQ">
+          <div class="splash-art">${poseImg('primary', 'skip-hello')}<div class="splash-bubble">Smart players see more.</div></div>
           ${connectShowGist ? `
           <p class="body">Sync this device to a private GitHub Gist so progress is backed up.</p>
           <form id="connect-form" class="focus-center-inner" style="gap:14px">
@@ -893,7 +898,7 @@ function renderTour() {
   const last = step === TOUR_STEPS - 1;
   return `
     <div class="focus tour"><div class="focus-center"><div class="focus-center-inner">
-      ${step === 0 ? '<img class="splash-logo tour-logo" src="img/logo.png" alt="Heads Up Baseball IQ">' : ''}
+      ${step === 0 ? '<img class="splash-logo tour-logo" src="img/logo.webp" alt="Heads Up Baseball IQ">' : ''}
       <div class="tour-art">${art}</div>
       <h1 class="h1">${title}</h1>
       <p class="body">${body}</p>
@@ -1255,7 +1260,7 @@ function rewardCardHtml(reward, totals) {
   const earned = reward.type === 'allMastered' && totals.allUnitsWritten && totals.mastered === totals.total;
   return `
     <div class="card reward ${earned ? 'reward-earned' : ''}">
-      <div class="reward-icon">${icon('glove')}</div>
+      <img class="reward-art" src="img/reward-glove.webp" alt="First baseman's glove" draggable="false">
       <div class="reward-body">
         <div class="eyebrow">${earned ? 'Earned!' : 'The big prize'}</div>
         <div class="h2">${escapeHtml(reward.title)}</div>
@@ -1272,14 +1277,14 @@ function badgeList(n) {
   const statuses = unitStatuses(n.iq, n.today);
   const unitDone = (id) => statuses.find((s) => s.unit.id === id)?.status === 'mastered';
   return [
-    { title: 'Rookie', blurb: 'Finish your first lesson', icon: 'ball', color: '#e6392d', earned: n.iq.lessonsCompleted >= 1 },
-    { title: 'Streak Star', blurb: '7 day streak', icon: 'flame', color: '#f08a24', earned: n.iq.longestStreak >= 7 },
-    { title: 'Heads Up', blurb: 'Master 10 situations', icon: 'eye', color: '#2f6fe0', earned: n.totals.mastered >= 10 },
-    { title: 'Base Stealer', blurb: 'Master Leads & Steals', icon: 'bolt', color: '#e0a400', earned: unitDone('u8') },
-    { title: 'Gold Glove', blurb: 'Master Outfield', icon: 'mitt', color: '#2fa84f', earned: unitDone('u3') },
-    { title: 'Rule Book', blurb: 'Master Know the Rules', icon: 'book', color: '#8b5cf6', earned: unitDone('u9') },
-    { title: 'Big Thinker', blurb: 'Reach All-Star rank', icon: 'brain', color: '#0ea5e9', earned: n.iq.xp >= 800 },
-    { title: 'IQ Master', blurb: 'Master every situation', icon: 'gem', color: '#12a594', earned: n.totals.total > 0 && n.totals.mastered === n.totals.total },
+    { title: 'Rookie', art: 'rookie', blurb: 'Finish your first lesson', icon: 'ball', color: '#e6392d', earned: n.iq.lessonsCompleted >= 1 },
+    { title: 'Streak Star', art: 'streak', blurb: '7 day streak', icon: 'flame', color: '#f08a24', earned: n.iq.longestStreak >= 7 },
+    { title: 'Heads Up', art: 'headsup', blurb: 'Master 10 situations', icon: 'eye', color: '#2f6fe0', earned: n.totals.mastered >= 10 },
+    { title: 'Base Stealer', art: 'stealer', blurb: 'Master Leads & Steals', icon: 'bolt', color: '#e0a400', earned: unitDone('u8') },
+    { title: 'Gold Glove', art: 'goldglove', blurb: 'Master Outfield', icon: 'mitt', color: '#2fa84f', earned: unitDone('u3') },
+    { title: 'Rule Book', art: 'rulebook', blurb: 'Master Know the Rules', icon: 'book', color: '#8b5cf6', earned: unitDone('u9') },
+    { title: 'Big Thinker', art: 'thinker', blurb: 'Reach All-Star rank', icon: 'brain', color: '#0ea5e9', earned: n.iq.xp >= 800 },
+    { title: 'IQ Master', art: 'iqmaster', blurb: 'Master every situation', icon: 'gem', color: '#12a594', earned: n.totals.total > 0 && n.totals.mastered === n.totals.total },
   ];
 }
 
@@ -1299,7 +1304,7 @@ function renderIqRewards() {
     <div class="badges">
       ${badges.map((b) => `
         <div class="badge ${b.earned ? 'badge-earned' : ''}" style="--badge:${b.color}">
-          <div class="badge-shield">${icon(b.icon)}</div>
+          <img class="badge-art" src="img/badges/${b.art}.webp" alt="" draggable="false">
           <div class="badge-title">${escapeHtml(b.title)}</div>
           <div class="badge-blurb">${escapeHtml(b.blurb)}</div>
         </div>
@@ -1454,48 +1459,7 @@ async function finishIqLesson() {
   render();
 }
 
-// The situation: a broadcast count bug over a little ballpark under the lights — grass,
-// infield dirt, white bases, orange runners, and a pulsing "YOU".
-const FIELD_SPOTS = {
-  batter: [88, 148], onDeck: [152, 160], runner1: [145, 105], runner2: [100, 60], runner3: [55, 105],
-  P: [100, 105], C: [100, 162], '1B': [138, 94], '2B': [124, 72], SS: [76, 72], '3B': [62, 94],
-  LF: [42, 50], CF: [100, 24], RF: [158, 50],
-};
-const BASES = { 1: [145, 105], 2: [100, 60], 3: [55, 105] };
-
-function fieldSvg(sit) {
-  const runners = sit.runners || [];
-  const youIsRunner = /^runner(\d)$/.exec(sit.you || '');
-  const base = ([x, y]) => `<rect x="${x - 5}" y="${y - 5}" width="10" height="10" transform="rotate(45 ${x} ${y})" class="field-base"/>`;
-  const runner = (n) => {
-    if (!runners.includes(n) || (youIsRunner && Number(youIsRunner[1]) === n)) return '';
-    const [x, y] = BASES[n];
-    return `<circle cx="${x}" cy="${y - 10}" r="6" class="field-runner"/>`;
-  };
-  const you = FIELD_SPOTS[sit.you];
-  const youY = youIsRunner ? you[1] - 10 : you?.[1];
-  // Home plate at (100,150); bases 45 units apart on the diagonals; foul lines run from home
-  // through first and third out to the fence.
-  return `
-    <svg class="field-svg" viewBox="0 0 200 172" aria-hidden="true">
-      <rect x="0" y="0" width="200" height="172" rx="16" class="field-foul"/>
-      <path class="field-grass" d="M100 150 L10 60 Q100 -30 190 60 Z"/>
-      <path class="field-dirt" d="M100 150 L37 87 Q100 18 163 87 Z"/>
-      <path class="field-infield-grass" d="M100 137 L132 105 L100 73 L68 105 Z"/>
-      <path class="field-chalk" d="M100 150 L10 60 M100 150 L190 60"/>
-      <circle cx="100" cy="105" r="6" class="field-dirt"/>
-      <path d="M95 147h10v4l-5 4l-5-4z" class="field-base"/>
-      ${base(BASES[1])}${base(BASES[2])}${base(BASES[3])}
-      ${runner(1)}${runner(2)}${runner(3)}
-      ${you ? `
-        <circle cx="${you[0]}" cy="${youY}" r="7" class="field-you-pulse"/>
-        <circle cx="${you[0]}" cy="${youY}" r="7" class="field-you"/>
-        <text x="${you[0]}" y="${youY - 12}" text-anchor="middle" class="field-you-label">YOU</text>
-      ` : ''}
-    </svg>
-  `;
-}
-
+// The situation: a broadcast count bug over the animated field (js/field.js).
 const YOU_LABELS = {
   batter: 'Batter', onDeck: 'On deck', runner1: 'On 1st', runner2: 'On 2nd', runner3: 'On 3rd',
   P: 'Pitcher', C: 'Catcher', '1B': '1st base', '2B': '2nd base', SS: 'Shortstop', '3B': '3rd base',
@@ -1595,11 +1559,12 @@ function renderIqLesson() {
       <div class="focus-top"><div class="focus-top-inner">
         <button class="icon-btn" data-action="iq-quit" aria-label="Leave lesson">${icon('close')}</button>
         <div class="lesson-progress">${barHtml(pct)}</div>
+        <button class="icon-btn ${voiceOn() ? '' : 'icon-btn-off'}" data-action="iq-voice" aria-label="${voiceOn() ? 'Mute Skip' : 'Have Skip read it'}">${icon(voiceOn() ? 'speaker' : 'speakerOff')}</button>
         ${lesson.mode === 'play' ? outsHtml(outs, false) : '<span class="tag">Review</span>'}
       </div></div>
       <div class="focus-body"><div class="focus-body-inner ${hasSit ? 'focus-body-inner-wide' : ''}">
         <div class="lesson-grid ${hasSit ? '' : 'lesson-grid-single'}">
-          ${hasSit ? `<div class="lesson-col situation">${bugHtml(resolved.sit)}<div class="field-card">${fieldSvg(resolved.sit)}</div></div>` : ''}
+          ${hasSit ? `<div class="lesson-col situation">${bugHtml(resolved.sit)}${fieldHtml(resolved.sit, `${lesson.index}:${card.conceptId}:${card.variant}`)}</div>` : ''}
           <div class="lesson-col">
             <div class="tags">
               <span class="tag" ${ustyle ? `style="--tag:${ustyle.color}"` : ''}>${unit ? `${icon(ustyle.icon)}${escapeHtml(unit.title)}` : escapeHtml(concept.title)}</span>
@@ -1629,7 +1594,7 @@ function renderIqResult() {
     title = 'Mistakes fixed!';
     body = 'New inning. That\'s how you get better: go back to what you missed until it sticks.';
   } else {
-    art = r.correct === r.total ? skipSvg('laughing', 'result-skip') : poseImg('coaching', 'result-pose');
+    art = r.correct === r.total ? poseImg('celebrate', 'result-pose') : poseImg('thumbsup', 'result-pose');
     title = r.correct === r.total ? 'Perfect lesson!' : 'Lesson complete!';
     body = 'These come back later, worded differently. Know it, don\'t memorize it.';
   }
@@ -1664,8 +1629,45 @@ function render() {
   else if (view === 'onboarding') html = shellHtml(renderOnboarding());
   else if (view === 'home') html = shellHtml(renderHome());
   else if (view === 'day') html = shellHtml(renderDayStep());
-  else html = `<div class="focus"><div class="focus-center"><div class="focus-center-inner"><img class="splash-logo" src="img/logo.png" alt="Heads Up Baseball IQ">${poseImg('batting', 'skip-hello splash-pose')}<p class="body">Loading…</p></div></div></div>`;
+  else html = `<div class="focus"><div class="focus-center"><div class="focus-center-inner"><img class="splash-logo" src="img/logo.webp" alt="Heads Up Baseball IQ">${poseImg('batting', 'skip-hello splash-pose')}<p class="body">Loading…</p></div></div></div>`;
   root.innerHTML = html + toastHtml();
+  syncField(root, fieldContext());
+  syncVoice(voiceContext());
+}
+
+/** What Skip should be reading for the card on screen (if any). */
+function voiceContext() {
+  if (view !== 'iqLesson' || !iqLesson || iqLesson.finished) return null;
+  const lesson = iqLesson;
+  const card = lesson.cards[lesson.index];
+  const resolved = resolveVariant(conceptById(card.conceptId), card.variant);
+  const answered = lesson.selected != null;
+  const correct = answered && lesson.selected === resolved.answer;
+  let resultLine = `right-${lesson.index % RIGHT_LINES.length}`;
+  if (answered && !correct) {
+    if (lesson.mode !== 'play') resultLine = 'notQuite';
+    else resultLine = lessonOuts(lesson) >= OUTS_PER_INNING ? 'inning' : 'out';
+  }
+  return {
+    key: `${lesson.index}:${card.conceptId}:${card.variant}`,
+    conceptId: card.conceptId,
+    variant: card.variant,
+    order: card.order,
+    tf: !!resolved.fixedOrder,
+    answered,
+    correct,
+    rightIndex: resolved.answer,
+    resultLine,
+  };
+}
+
+/** What the animated field needs for the card on screen (if any). */
+function fieldContext() {
+  if (view !== 'iqLesson' || !iqLesson || iqLesson.finished) return {};
+  const card = iqLesson.cards[iqLesson.index];
+  const concept = conceptById(card.conceptId);
+  const resolved = resolveVariant(concept, card.variant);
+  return { sit: resolved.sit, play: PLAYS[`${card.conceptId}:${card.variant}`] || null, answered: iqLesson.selected != null };
 }
 
 // ---------- action dispatch ----------
@@ -1804,10 +1806,15 @@ function handleAction(action, value) {
     case 'iq-quit':
       view = 'iqHome';
       break;
+    case 'iq-voice':
+      if (voiceOn()) setVoiceOn(false);
+      else { setVoiceOn(true); replayVoice(voiceContext()); }
+      break;
     case 'iq-resume':
       view = 'iqLesson';
       break;
     case 'iq-pick':
+      stopVoice();
       pickIqChoice(Number(value));
       break;
     case 'iq-check':

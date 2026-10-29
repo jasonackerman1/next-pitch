@@ -1276,7 +1276,7 @@ export const IQ_UNITS = [
             choices: ['Run through the bag at full speed', 'Slide headfirst into first', 'Slow down and step on it', 'Jump at the bag'],
           },
           {
-            sit: { outs: 0, runners: [], you: 'runner1' },
+            sit: { outs: 0, runners: [], you: 'batter' },
             prompt: 'You ran through first on a ground ball. What do you do right after?',
             choices: ['Look to your right for an overthrow', 'Turn left toward second', 'Walk back to the dugout', 'Stop on the bag'],
           },

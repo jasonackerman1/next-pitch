@@ -6,3 +6,6 @@ _books/
 
 # Brand sheet + mockup originals (large source art, kept local)
 _brand/
+
+# Voice tool (python venv for tools/make_voice.py)
+.venv/
