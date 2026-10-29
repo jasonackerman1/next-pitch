@@ -15,6 +15,10 @@
 
 `sw.js` cache v11.
 
+**Next:** Jay tries the field + voice on his phone and picks a voice (samples in `_brand/voice-samples/`, change `VOICE` in `tools/make_voice.py`). Coach reviews the 29 🧢 cards plus the plays that take liberties. Jay triple-taps the logo to wipe test data before Owen gets it (launch after the fall championship, Sun 2026-11-01).
+
+**Commits:** no Claude attribution lines (turned off 2026-10-29 in `~/.claude/settings.json` and `.claude/settings.json`).
+
 ## First-launch tour + name + share-ready (2026-10-28, NOT yet committed or deployed)
 
 Jay asked how a new player learns the app, noticed "Owen" was hard-coded, and wants to share it with other players. Decisions: **progress saves on each player's device** (no setup), and an **in-app tour first** (a HyperFrames video can come later for sharing with families).
