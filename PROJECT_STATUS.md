@@ -1,6 +1,6 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
-## Real art, animated field plays, Skip's voiceover (2026-10-28, NOT yet committed or deployed)
+## Real art, animated field plays, Skip's voiceover (2026-10-28, live in afefee9)
 
 **Art.** Jay generated all 28 brand files in ChatGPT from `_brand/ART_REQUEST.md` (prompts + redo list; heads drawn on one blank base so they line up). Sources in `_brand/art/` (git-ignored); `tools/process_art.py` resizes them to WebP in `img/` (heads 300px, poses 460px tall, badges, first-baseman's mitt, logo) and PNG icons. New: badge art on Rewards, the mitt on the glove card, `celebrate` (perfect lesson) and `thumbsup` (lesson complete) poses, `primary` on the welcome screen. Unused old cut-outs removed.
 
