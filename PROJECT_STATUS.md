@@ -1,5 +1,13 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
+## Home screen matches the dashboard mockup's middle column (2026-11-02, later)
+
+Jay pointed at his web-dashboard mockup: the middle column (stats, continue card, colored progress tiles) never made it in. Rebuilt `renderIqHome`:
+- **Top band:** "Welcome back" + a stat strip (day streak, XP, badges earned), with the primary Skip pose and a cream quote card (one original line a day, `SKIP_QUOTES`).
+- **Continue card:** thumbnail of Skip on a little field, today's at-bat (or Resume / Fix your mistakes), a bar (lesson progress mid-lesson, otherwise XP toward the next rank), outs, and the Play ball button.
+- **My Progress = colored unit tiles** (5 across on desktop, 3 on tablet, 2 on phone): icon, name, progress bar, mastered/total. Tapping a tile opens that unit's situation list below it (gold ring on the tile); tapping again closes it. Nothing is open by default.
+- Kept our rules: no leaderboard (Jay agrees that's a maybe-later), sidebar unchanged. `sw.js` cache v15.
+
 ## Field questions actually show up + rank-up/badge celebration (2026-11-02, later)
 
 Jay played a while and never saw a field question, and ranked up to Starter with nothing telling him.

@@ -1176,28 +1176,49 @@ function renderIqHome() {
     buttons = `<button class="btn btn-red" data-action="iq-start-play" ${lesson.length ? '' : 'disabled'}>${playedToday ? 'Play again' : 'Play ball'}</button>`;
   }
 
+  const earned = badgeList(n).filter((b) => b.earned).length;
+  const nextUp = n.next ? `${n.next.xp - n.iq.xp} XP to ${escapeHtml(n.next.title)}` : 'Top rank';
+  const rankPct = n.next ? Math.round(((n.iq.xp - n.rank.xp) / (n.next.xp - n.rank.xp)) * 100) : 100;
+  const barPct = iqLesson ? Math.round((iqLesson.index / iqLesson.cards.length) * 100) : rankPct;
+  const barLabel = iqLesson ? `Play ${iqLesson.index + 1} of ${iqLesson.cards.length}` : `${escapeHtml(n.rank.title)} · ${nextUp}`;
+  const selected = expandedUnit && expandedUnit !== '__none__' ? statuses.find((st) => st.unit.id === expandedUnit) : null;
+
   return `
-    <div class="welcome">
-      <h1 class="h1">Welcome back, ${escapeHtml(playerName())}!</h1>
-      <div class="welcome-tag">Play. Learn. Think. Improve.</div>
-    </div>
-    <section class="hero-card ${inningOver && !iqLesson ? 'hero-over' : ''}">
-      <div class="hero-sun" aria-hidden="true"></div>
-      ${poseImg(pose, 'hero-pose')}
-      <div class="hero-copy">
+    <section class="home-top">
+      <div class="home-hello">
+        <h1 class="h1">Welcome back, ${escapeHtml(playerName())}!</h1>
+        <div class="welcome-tag">Play. Learn. Think. Improve.</div>
+        <div class="stat-strip">
+          <div class="stat-chip stat-flame">${icon('flame')}<div><b>${n.streak}</b><span>Day streak</span></div></div>
+          <div class="stat-chip stat-xp">${icon('gem')}<div><b>${n.iq.xp.toLocaleString()}</b><span>XP</span></div></div>
+          <div class="stat-chip stat-badge">${icon('shield')}<div><b>${earned}</b><span>Badges</span></div></div>
+        </div>
+      </div>
+      <div class="home-skip" aria-hidden="true">
+        ${poseImg('primary', 'home-skip-pose')}
+        <div class="quote-card">“${escapeHtml(skipQuote(today))}”</div>
+      </div>
+    </section>
+    <section class="continue-card ${inningOver && !iqLesson ? 'continue-over' : ''}">
+      <div class="continue-thumb">${poseImg(pose, 'continue-pose')}</div>
+      <div class="continue-body">
         <div class="hero-kicker">${kicker}</div>
-        <h2 class="hero-title">${escapeHtml(title)}</h2>
-        <p class="hero-line">${line}</p>
+        <h2 class="continue-title">${escapeHtml(title)}</h2>
+        <p class="continue-line">${line}</p>
+        <div class="continue-bar">${barHtml(barPct)}<span>${barLabel}</span></div>
         <div class="hero-outs">${outsHtml(outs)}</div>
-        <div class="hero-row">${buttons}</div>
+      </div>
+      <div class="continue-go">
+        ${buttons}
         ${!inningOver && !iqLesson && iq.missed.length ? `<button class="link-btn hero-sub-btn" data-action="iq-start-review">Fix mistakes (${iq.missed.length}) ›</button>` : ''}
       </div>
     </section>
     <div class="hide-wide">${streakCardHtml(n)}</div>
     <div class="section-head"><span>My progress</span><span>${n.totals.mastered} of ${n.totals.total} mastered</span></div>
-    <div class="season">
-      ${statuses.map((s, i) => unitHtml(s, i, iq, currentId, inningOver)).join('')}
+    <div class="unit-tiles">
+      ${statuses.map((st) => unitTileHtml(st, selected?.unit.id === st.unit.id)).join('')}
     </div>
+    ${selected ? `<div class="season">${unitHtml(selected, 0, iq, currentId, inningOver, true)}</div>` : '<p class="small unit-hint">Tap a unit to see its situations.</p>'}
     <div class="hide-wide">${proTipHtml(today)}</div>
     ${statusHtml()}
   `;
@@ -1206,7 +1227,40 @@ function renderIqHome() {
 // Which unit's situations are showing in the season list. null = the unit with UP NEXT.
 let expandedUnit = null;
 
-function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOver) {
+/** One colored tile per unit on the home screen: icon, name, progress bar, mastered count. */
+function unitTileHtml({ unit, status, total, mastered }, selected) {
+  const style = unitStyle(unit);
+  const pct = total ? Math.round((mastered / total) * 100) : 0;
+  if (status === 'coming') {
+    return `<div class="unit-tile unit-tile-coming" style="--unit:${style.color}">
+      <div class="unit-tile-icon">${icon(style.icon)}</div>
+      <div class="unit-tile-name">${escapeHtml(unit.title)}</div>
+      <div class="unit-tile-count">Coming soon</div>
+    </div>`;
+  }
+  return `<button class="unit-tile ${selected ? 'unit-tile-on' : ''} ${status === 'mastered' ? 'unit-tile-done' : ''}" style="--unit:${style.color}" data-action="toggle-unit" data-value="${unit.id}" aria-expanded="${selected}">
+    <div class="unit-tile-icon">${icon(status === 'mastered' ? 'star' : style.icon)}</div>
+    <div class="unit-tile-name">${escapeHtml(unit.title)}</div>
+    <div class="unit-tile-bar"><span style="width:${pct}%"></span></div>
+    <div class="unit-tile-count">${mastered}/${total}</div>
+  </button>`;
+}
+
+// Skip's line on the home screen, one a day. Original lines.
+const SKIP_QUOTES = [
+  'Good players react. Smart players see it coming.',
+  'Know where the ball goes before it\'s hit.',
+  'Every pitch, ask: what if it\'s hit to me?',
+  'Hustle and brains never have a slump.',
+  'Check the outs. Check the runners. Then play.',
+  'The best throw is the one that\'s already decided.',
+];
+function skipQuote(today) {
+  const d = Number(today.replace(/-/g, '')) || 0;
+  return SKIP_QUOTES[d % SKIP_QUOTES.length];
+}
+
+function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOver, forceOpen = false) {
   const pct = total ? Math.round((mastered / total) * 100) : 0;
   const style = unitStyle(unit);
   const sub = {
@@ -1215,7 +1269,7 @@ function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOve
     open: `${mastered}/${total} mastered · ${escapeHtml(unit.subtitle)}`,
   }[status];
   const hasCurrent = unit.concepts.some((c) => c.id === currentId);
-  const expanded = (status === 'open' || status === 'mastered') && (expandedUnit ? expandedUnit === unit.id : hasCurrent);
+  const expanded = forceOpen || ((status === 'open' || status === 'mastered') && (expandedUnit ? expandedUnit === unit.id : hasCurrent));
   const tag = status === 'coming' ? 'div' : 'button';
   const head = `
     <${tag} class="lvl-head" ${tag === 'button' ? `data-action="toggle-unit" data-value="${unit.id}" aria-expanded="${expanded}"` : ''}>
@@ -1901,13 +1955,9 @@ function handleAction(action, value) {
       startIqLesson(outs >= OUTS_PER_INNING ? 'review' : 'play');
       return;
     }
-    case 'toggle-unit': {
-      const statuses = unitStatuses(iqState(), todayKey());
-      const currentId = currentConceptId(iqState(), statuses);
-      const showing = expandedUnit || statuses.find((st) => st.unit.concepts.some((c) => c.id === currentId))?.unit.id;
-      expandedUnit = showing === value ? '__none__' : value;
+    case 'toggle-unit':
+      expandedUnit = expandedUnit === value ? null : value;
       break;
-    }
     case 'iq-quit':
       view = 'iqHome';
       break;
