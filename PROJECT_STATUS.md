@@ -16,7 +16,9 @@ Jay watched Owen play and saw two problems: he tapped Next without reading the e
 - Your team's dugout is the first-base side (`dugout1`) in every card.
 - `tools/make_voice.py` now runs 3 at a time, retries longer, and skips (and lists) lines the free voice service refuses instead of stopping; re-run to fill them in. 1,288 clips.
 
-`sw.js` cache v13.
+`sw.js` cache v13. Live in `49d6b8c`.
+
+**Next:** Jay tries the drag questions with a real finger on phone/iPad (only mouse-tested so far). Coach reviews the 🧢 cards in `game-iq-cards-review.md` (29 original + 26 field questions). Confirm Owen's team uses the first-base dugout.
 
 ## Real art, animated field plays, Skip's voiceover (2026-10-28, live in afefee9)
 
