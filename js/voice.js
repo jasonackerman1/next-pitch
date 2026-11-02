@@ -14,6 +14,13 @@ export const VOICE_LINES = {
   'right-0': 'Correct!', 'right-1': 'Nice read!', 'right-2': 'Heads up!', 'right-3': 'You knew it!', 'right-4': 'Smart play!',
   out: 'That\'s an out.', inning: 'Inning\'s over.', notQuite: 'Not quite.',
   answerIs: 'The answer is:',
+  rankUp: 'Rank up!',
+  'rank-Prospect': 'You\'re a Prospect now.',
+  'rank-Starter': 'You\'re a Starter now.',
+  'rank-All-Star': 'You\'re an All-Star now.',
+  'rank-Captain': 'You\'re a Captain now.',
+  'rank-Field General': 'You\'re a Field General now. Top rank!',
+  newBadge: 'You earned a new badge!',
 };
 
 const PREF_KEY = 'next-pitch:voice';

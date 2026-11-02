@@ -1,5 +1,12 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
+## Field questions actually show up + rank-up/badge celebration (2026-11-02, later)
+
+Jay played a while and never saw a field question, and ranked up to Starter with nothing telling him.
+- **Why no field questions:** each situation rotated through its versions in order, and field questions were appended last, so a situation had to come up 3–4 more times first. `makeCard` (js/iq.js) now alternates field question → regular question → field question…, using how many times he's seen the situation; brand-new situations start with a field question. Situations without one rotate as before.
+- **Rank-ups and new badges** now show on the end-of-lesson screen (gold "Rank up! You're a Starter" card with the next rank's XP, a card per new badge with its art), the trophy pose, a fanfare, and Skip says it ("Rank up! You're a Starter now."). Computed by comparing before/after the save (`milestones()` in js/app.js).
+- `sw.js` cache v14.
+
 ## Owen's first real use → Continue lock + field questions (2026-11-02)
 
 Jay watched Owen play and saw two problems: he tapped Next without reading the explanation, and all-multiple-choice is boring.

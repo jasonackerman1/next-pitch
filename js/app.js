@@ -4,7 +4,7 @@ import { emptyState, getContentForDayIndex, PRACTICE_ENABLED, PLAYER_NAME, RESET
 import { IQ_REWARDS, IQ_UNITS } from './iq-content.js';
 import { PLAYS } from './iq-plays.js';
 import { fieldHtml, syncField } from './field.js';
-import { syncVoice, replayVoice, stopVoice, voiceOn, setVoiceOn } from './voice.js';
+import { syncVoice, replayVoice, stopVoice, voiceOn, setVoiceOn, speak } from './voice.js';
 import {
   OUTS_PER_INNING, MASTERED_BOX, RANKS, todayKey, normalizeIq, outsToday, rankFor, conceptById, resolveVariant,
   unitStatuses, freshConceptIds, masteryTotals, makeCard, buildLesson, buildReviewLesson, applyLesson, displayStreak, weekPlayed,
@@ -80,6 +80,7 @@ function playSound(kind) {
       right: [[880, 0, 0.09], [1318.5, 0.09, 0.16]],
       wrong: [[196, 0, 0.18], [155.6, 0.16, 0.24]],
       done: [[659.3, 0, 0.1], [784, 0.1, 0.1], [1046.5, 0.2, 0.22]],
+      fanfare: [[523.3, 0, 0.12], [659.3, 0.12, 0.12], [784, 0.24, 0.12], [1046.5, 0.36, 0.2], [784, 0.56, 0.1], [1046.5, 0.66, 0.45]],
     }[kind];
     const type = kind === 'wrong' ? 'triangle' : 'sine';
     for (const [freq, start, dur] of notes) {
@@ -1432,7 +1433,9 @@ async function finishIqLesson() {
   render();
   try {
     let xpEarned = 0;
+    let before = null;
     const newState = await saveState((fresh) => {
+      before = normalizeIq(JSON.parse(JSON.stringify(fresh.gameIq || {})));
       const result = applyLesson(fresh.gameIq, payload, today);
       fresh.gameIq = result.iq;
       xpEarned = result.xpEarned;
@@ -1447,12 +1450,19 @@ async function finishIqLesson() {
       total: lesson.answers.length,
       xpEarned,
       streak: displayStreak(iqState(), today),
+      ...milestones(before, iqState(), today),
     };
     clearIqLesson();
     iqLesson = null;
     busy = false;
     view = 'iqResult';
-    if (iqResult.completed) playSound('done');
+    if (iqResult.rankUp || iqResult.newBadges.length) {
+      playSound('fanfare');
+      speak([
+        ...(iqResult.rankUp ? ['line:rankUp', `line:rank-${iqResult.rankUp}`] : []),
+        ...(iqResult.newBadges.length ? ['line:newBadge'] : []),
+      ], 700);
+    } else if (iqResult.completed) playSound('done');
   } catch (err) {
     busy = false;
     setStatus(`Couldn't save. Check the connection and try again. (${err instanceof GistError ? err.message : String(err)})`, true);
@@ -1627,6 +1637,42 @@ function renderIqLesson() {
   `;
 }
 
+/** What this lesson unlocked: a new rank, and any badges that just turned on. */
+function milestones(before, after, today) {
+  if (!before) return { rankUp: null, newBadges: [] };
+  const n = (iq) => ({ iq, today, totals: masteryTotals(iq) });
+  const was = rankFor(before.xp).rank.title;
+  const now = rankFor(after.xp).rank.title;
+  const had = new Set(badgeList(n(before)).filter((b) => b.earned).map((b) => b.title));
+  return {
+    rankUp: now !== was ? now : null,
+    newBadges: badgeList(n(after)).filter((b) => b.earned && !had.has(b.title)),
+  };
+}
+
+function milestoneHtml(r) {
+  if (!r.rankUp && !r.newBadges?.length) return '';
+  const next = r.rankUp ? rankFor(iqState().xp).next : null;
+  return `
+    <div class="milestones">
+      ${r.rankUp ? `
+        <div class="milestone milestone-rank">
+          <div class="milestone-kicker">Rank up!</div>
+          <div class="milestone-title">You're a ${escapeHtml(r.rankUp)}</div>
+          ${next ? `<div class="small">Next up: ${escapeHtml(next.title)} at ${next.xp} XP</div>` : '<div class="small">Top rank. Legend.</div>'}
+        </div>` : ''}
+      ${(r.newBadges || []).map((b) => `
+        <div class="milestone milestone-badge">
+          <img class="milestone-badge-art" src="img/badges/${b.art}.webp" alt="" draggable="false">
+          <div>
+            <div class="milestone-kicker">New badge!</div>
+            <div class="milestone-title">${escapeHtml(b.title)}</div>
+            <div class="small">${escapeHtml(b.blurb)}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
 function renderIqResult() {
   const r = iqResult;
   let title;
@@ -1641,7 +1687,7 @@ function renderIqResult() {
     title = 'Mistakes fixed!';
     body = 'New inning. That\'s how you get better: go back to what you missed until it sticks.';
   } else {
-    art = r.correct === r.total ? poseImg('celebrate', 'result-pose') : poseImg('thumbsup', 'result-pose');
+    art = r.correct === r.total || r.rankUp || r.newBadges?.length ? poseImg('celebrate', 'result-pose') : poseImg('thumbsup', 'result-pose');
     title = r.correct === r.total ? 'Perfect lesson!' : 'Lesson complete!';
     body = 'These come back later, worded differently. Know it, don\'t memorize it.';
   }
@@ -1650,6 +1696,7 @@ function renderIqResult() {
       <div class="result-art"><div class="result-burst" aria-hidden="true"></div>${art}</div>
       <h1 class="h1 result-title ${r.completed ? '' : 'result-title-red'}">${title}</h1>
       <p class="body">${body}</p>
+      ${milestoneHtml(r)}
       <div class="tiles">
         <div class="tile tile-green">${icon('check')}<div class="tile-value">${r.correct}/${r.total}</div><div class="tile-label">Right</div></div>
         <div class="tile tile-blue">${icon('gem')}<div class="tile-value">+${r.xpEarned}</div><div class="tile-label">XP</div></div>

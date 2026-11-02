@@ -1589,3 +1589,40 @@ div.lvl-head { cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .field-draggable, .actor-tappable::before { animation: none !important; }
 }
+
+/* ---------- end of lesson: rank-ups and new badges ---------- */
+.milestones { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.milestone {
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-align: left;
+  animation: milestone-in 0.6s cubic-bezier(.2, 1.5, .4, 1) both;
+}
+.milestone-rank {
+  background: linear-gradient(135deg, #f6b93b 0%, #e0a400 100%);
+  color: #0b1626;
+  text-align: center;
+  box-shadow: 0 0 0 3px rgba(246, 185, 59, 0.35), 0 10px 30px rgba(246, 185, 59, 0.35);
+}
+.milestone-rank .small { color: rgba(11, 22, 38, 0.75); }
+.milestone-badge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 2px solid var(--gold);
+  animation-delay: 0.25s;
+}
+.milestone-badge-art { width: 58px; height: 58px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)); }
+.milestone-kicker {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.milestone-badge .milestone-kicker { color: var(--gold); }
+.milestone-title { font-family: var(--font-display); font-weight: 900; font-size: 1.7rem; line-height: 1.05; text-transform: uppercase; }
+.milestone-badge .milestone-title { font-size: 1.3rem; }
+@keyframes milestone-in { from { opacity: 0; scale: 0.7; } to { opacity: 1; scale: 1; } }
+@media (prefers-reduced-motion: reduce) { .milestone { animation: none; } }

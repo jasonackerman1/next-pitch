@@ -169,8 +169,21 @@ function shuffle(arr) {
 export function makeCard(iq, conceptId, avoidVariant = null) {
   const concept = conceptById(conceptId);
   const n = concept.variants.length;
-  let variant = ((iq.concepts[conceptId]?.lastVariant ?? -1) + 1) % n;
-  if (variant === avoidVariant && n > 1) variant = (variant + 1) % n;
+  const st = iq.concepts[conceptId];
+  let variant;
+  // Situations with field questions (answered on the field) alternate: field question,
+  // regular question, field question… starting with a field one, so they actually come up.
+  const field = concept.variants.map((v, i) => (v.ask ? i : -1)).filter((i) => i >= 0);
+  const plain = concept.variants.map((v, i) => (v.ask ? -1 : i)).filter((i) => i >= 0);
+  if (field.length && plain.length) {
+    const seen = st?.seen || 0;
+    const turn = Math.floor(seen / 2);
+    variant = seen % 2 === 0 ? field[turn % field.length] : plain[turn % plain.length];
+    if (variant === avoidVariant) variant = seen % 2 === 0 ? plain[turn % plain.length] : field[turn % field.length];
+  } else {
+    variant = ((st?.lastVariant ?? -1) + 1) % n;
+    if (variant === avoidVariant && n > 1) variant = (variant + 1) % n;
+  }
   const resolved = resolveVariant(concept, variant);
   const indices = resolved.choices.map((_, i) => i);
   return { conceptId, variant, order: resolved.fixedOrder ? indices : shuffle(indices) };
