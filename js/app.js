@@ -1518,6 +1518,21 @@ function startExplainGate(text) {
   setTimeout(() => openExplainGate(key), ms + 8000); // never stuck if the audio stalls
 }
 
+// What to do on a field question, and what he's picked so far (answers come off the field).
+function askHtml(resolved, picked) {
+  const ask = resolved.ask;
+  const how = ask.tap ? 'Tap the right player'
+    : ask.drag === 'ball' ? 'Drag the ball where it goes'
+    : ask.drag === 'YOU' ? 'Drag Skip to your spot'
+    : 'Drag the runner where he ends up';
+  const pick = picked != null ? resolved.targets[picked]?.label : null;
+  return `
+    <div class="ask-card">
+      <div class="ask-how">${icon(ask.tap ? 'target' : 'runner')}<span>${how}</span></div>
+      <div class="ask-pick ${pick ? 'ask-pick-on' : ''}">${pick ? `<span class="ask-pick-label">Your call</span>${escapeHtml(pick)}` : 'Make your call on the field.'}</div>
+    </div>`;
+}
+
 const RIGHT_LINES = ['Correct!', 'Nice read!', 'Heads up!', 'You knew it!', 'Smart play!'];
 const RIGHT_FACES = ['excited', 'laughing', 'wink', 'happy', 'cool'];
 
@@ -1596,14 +1611,14 @@ function renderIqLesson() {
       </div></div>
       <div class="focus-body"><div class="focus-body-inner ${hasSit ? 'focus-body-inner-wide' : ''}">
         <div class="lesson-grid ${hasSit ? '' : 'lesson-grid-single'}">
-          ${hasSit ? `<div class="lesson-col situation">${bugHtml(resolved.sit)}${fieldHtml(resolved.sit, `${lesson.index}:${card.conceptId}:${card.variant}`)}</div>` : ''}
+          ${hasSit ? `<div class="lesson-col situation">${bugHtml(resolved.sit)}${fieldHtml(resolved.sit, `${lesson.index}:${card.conceptId}:${card.variant}`, !!resolved.ask)}</div>` : ''}
           <div class="lesson-col">
             <div class="tags">
               <span class="tag" ${ustyle ? `style="--tag:${ustyle.color}"` : ''}>${unit ? `${icon(ustyle.icon)}${escapeHtml(unit.title)}` : escapeHtml(concept.title)}</span>
               ${concept.realPlay ? '<span class="tag tag-real">From your season</span>' : ''}
             </div>
             <h1 class="prompt">${escapeHtml(resolved.prompt)}</h1>
-            <div class="choices">${choices}</div>
+            ${resolved.ask ? askHtml(resolved, answered ? selected : pending) : `<div class="choices">${choices}</div>`}
           </div>
         </div>
       </div></div>
@@ -1686,6 +1701,7 @@ function voiceContext() {
     variant: card.variant,
     order: card.order,
     tf: !!resolved.fixedOrder,
+    ask: !!resolved.ask,
     answered,
     correct,
     rightIndex: resolved.answer,
@@ -1700,7 +1716,16 @@ function fieldContext() {
   const card = iqLesson.cards[iqLesson.index];
   const concept = conceptById(card.conceptId);
   const resolved = resolveVariant(concept, card.variant);
-  return { sit: resolved.sit, play: PLAYS[`${card.conceptId}:${card.variant}`] || null, answered: iqLesson.selected != null };
+  const answered = iqLesson.selected != null;
+  return {
+    sit: resolved.sit,
+    play: PLAYS[`${card.conceptId}:${card.variant}`] || null,
+    answered,
+    ask: resolved.ask || null,
+    targets: resolved.targets || null,
+    picked: answered ? iqLesson.selected : iqLesson.pending,
+    onPick: (i) => handleAction('iq-pick', String(i)),
+  };
 }
 
 // ---------- action dispatch ----------
@@ -1938,7 +1963,7 @@ document.addEventListener('keydown', (e) => {
   if (view !== 'iqLesson' || !iqLesson || iqLesson.finished || e.metaKey || e.ctrlKey || e.altKey) return;
   const card = iqLesson.cards[iqLesson.index];
   const answered = iqLesson.selected !== null && iqLesson.selected !== undefined;
-  if (!answered && /^[1-9]$/.test(e.key)) {
+  if (!answered && /^[1-9]$/.test(e.key) && !conceptById(card.conceptId).variants[card.variant].ask) {
     const choice = card.order[Number(e.key) - 1];
     if (choice !== undefined) handleAction('iq-pick', String(choice));
   } else if (e.key === 'Enter') {

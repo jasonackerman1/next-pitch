@@ -101,6 +101,8 @@ export function resolveVariant(concept, variantIndex) {
   if (typeof v.tf === 'boolean') {
     return { ...v, choices: ['True', 'False'], answer: v.tf ? 0 : 1, fixedOrder: true };
   }
+  // Field questions: the targets are the choices (first one right), answered on the field.
+  if (v.ask) return { ...v, choices: v.targets.map((t) => t.label), answer: 0, fixedOrder: false };
   return { ...v, answer: 0, fixedOrder: false };
 }
 

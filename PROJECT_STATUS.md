@@ -1,5 +1,23 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
+## Owen's first real use → Continue lock + field questions (2026-11-02)
+
+Jay watched Owen play and saw two problems: he tapped Next without reading the explanation, and all-multiple-choice is boring.
+
+**Continue lock** (live `c95650c`). After an answer, the button says "Listen to Skip…" and fills while Skip reads; Continue only appears when he finishes. Muted or the audio can't play: unlocks after the explanation's reading time (~2.6 words/s), with an 8 s safety net. Enter can't skip it. A lesson resumed mid-answer is never locked. (`explainGate` in `js/app.js`; `speak()` in `js/voice.js` takes an `onDone`.)
+
+**Field questions.** 69 new cards answered ON the field (Jay's picks: mixed in with multiple choice, all four kinds):
+- drag Skip to your spot, drag your runner to where you end up, drag the ball to where the throw goes, tap the right player.
+- Card format: `ask: { drag: 'YOU' | 'R1'… | 'ball', from, setup }` or `{ tap: true }` plus `targets: [{ at, label }]`, first target right (documented at the top of `js/iq-content.js`). `setup` acts out the moment of decision before he answers.
+- Flow is the same as multiple choice: drag or tap → "Your call: …" → Check → the pick turns green or gets a red X, Skip slides to the right spot if he missed → Skip explains → the play runs.
+- Added as NEW variants at the end of their concepts, so existing progress, plays and voice keys are untouched; they come up as concepts rotate.
+- `node tools/check_plays.mjs` now also checks field questions (targets 30+ apart, real players, setup steps). All 69 also pass an automated drag-and-check run in the browser.
+- 26 are tagged 🧢 for the coach in the new "Field questions" section of `game-iq-cards-review.md` (cutoff assignments, who covers, a few judgment calls).
+- Your team's dugout is the first-base side (`dugout1`) in every card.
+- `tools/make_voice.py` now runs 3 at a time, retries longer, and skips (and lists) lines the free voice service refuses instead of stopping; re-run to fill them in. 1,288 clips.
+
+`sw.js` cache v13.
+
 ## Real art, animated field plays, Skip's voiceover (2026-10-28, live in afefee9)
 
 **Art.** Jay generated all 28 brand files in ChatGPT from `_brand/ART_REQUEST.md` (prompts + redo list; heads drawn on one blank base so they line up). Sources in `_brand/art/` (git-ignored); `tools/process_art.py` resizes them to WebP in `img/` (heads 300px, poses 460px tall, badges, first-baseman's mitt, logo) and PNG icons. New: badge art on Rewards, the mitt on the glove card, `celebrate` (perfect lesson) and `thumbsup` (lesson complete) poses, `primary` on the welcome screen. Unused old cut-outs removed.

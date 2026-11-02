@@ -50,15 +50,15 @@ async def record(text, dest, sem):
     async with sem:
         with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp:
             raw = Path(tmp.name)
-        for attempt in range(4):
+        for attempt in range(7):
             try:
                 await edge_tts.Communicate(text, VOICE, rate=RATE).save(str(raw))
                 break
-            except Exception as err:  # the service hiccups now and then
-                if attempt == 3:
+            except Exception as err:  # the free service pushes back when it's busy; wait it out
+                if attempt == 6:
+                    raw.unlink(missing_ok=True)
                     raise
-                print(f'  retry ({err}): {text[:50]}')
-                await asyncio.sleep(2 + attempt * 2)
+                await asyncio.sleep(3 * (attempt + 1))
         # Mono 32 kbps is plenty for speech and keeps the app small.
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(raw), '-ac', '1', '-b:a', '32k', str(dest)], check=True)
         raw.unlink()
@@ -76,16 +76,28 @@ async def main():
         if not (AUDIO / name).exists():
             todo[name] = say
     print(f'{len(lines)} lines, {len(set(manifest.values()))} clips, {len(todo)} to record')
-    sem = asyncio.Semaphore(6)
+    sem = asyncio.Semaphore(3)
     done = 0
+    failed = []
     async def one(name, say):
         nonlocal done
-        await record(say, AUDIO / name, sem)
+        try:
+            await record(say, AUDIO / name, sem)
+        except Exception:
+            failed.append(say)
+            return
         done += 1
         if done % 50 == 0:
             print(f'  {done}/{len(todo)}')
     await asyncio.gather(*(one(n, s) for n, s in todo.items()))
 
+    if failed:
+        # Lines that still failed get no clip for now (the app just skips them); run again later.
+        bad = {clip_name(t) for t in failed}
+        manifest = {k: v for k, v in manifest.items() if v not in bad}
+        print(f'{len(failed)} lines failed (service busy). Run the script again to fill them in:')
+        for t in failed[:10]:
+            print('   ', t[:70])
     keep = set(manifest.values())
     stale = [f for f in AUDIO.glob('*.mp3') if f.name not in keep]
     for f in stale:

@@ -11,7 +11,8 @@ for (const u of IQ_UNITS) {
     out.push({ key: `${c.id}:why`, text: c.why });
     c.variants.forEach((v, i) => {
       out.push({ key: `${c.id}:${i}:q`, text: v.prompt });
-      if (typeof v.tf !== 'boolean') v.choices.forEach((ch, j) => out.push({ key: `${c.id}:${i}:c${j}`, text: ch }));
+      const choices = v.ask ? v.targets.map((t) => t.label) : v.choices;
+      if (typeof v.tf !== 'boolean') choices.forEach((ch, j) => out.push({ key: `${c.id}:${i}:c${j}`, text: ch }));
     });
   }
 }

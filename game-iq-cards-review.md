@@ -1660,3 +1660,363 @@ Tags: 📘 checked against the GHVBL rulebook · ⚾ real play from Owen's seaso
 3. True or false: If a runner misses a base, the umpire calls him out right away without anyone asking.
    - True
    - ✅ False
+
+
+---
+
+# Field questions (answered on the field)
+
+New in November 2026. Instead of picking A–D, Owen drags Skip, a runner or the ball to a spot, or taps a player. ✅ = the right spot. Each one then acts out the right play.
+
+## Awareness
+
+1. **Drag Skip.** You're up after this batter, and this field has no fenced-in on-deck area. Drag Skip to where you go. 🧢
+   - ✅ In the dugout, helmet on
+   - Stay out here in the on-deck spot
+   - Next to home plate to see the pitches
+   - Along the fence by the third-base line
+   - 🧢 *Treats the first-base dugout as your team's dugout.*
+2. **Drag Skip.** You're on deck. Base hit to left, and the runner from second is rounding third with the throw coming home. Drag Skip to where you go. 🧢
+   - ✅ Behind home plate, to signal the runner
+   - Stay in the on-deck spot
+   - Out by third base to wave him in
+   - 🧢 *Signal spot behind home, off the catcher's shoulder.*
+3. **Drag the ball.** Two outs, runner on second. Ground-ball single to you in right, and the runner never stopped. Drag the ball to where your throw goes. 🧢
+   - ✅ Home plate, to stop the run
+   - Second base
+   - Third base
+   - 🧢 *Answer is "throw home". Should the label say "home, through the cutoff"?*
+
+## Count Smarts
+
+1. **Drag Skip.** Runners on first and second, two outs. You swing at strike three in the dirt and it gets past the catcher. Drag Skip to where you go.
+   - ✅ Run hard to first
+   - Stay at the plate
+   - Walk back to the dugout
+2. **Drag Skip.** Runner on first, nobody out. Strike three bounces away from the catcher. Drag Skip to where you go. 🧢
+   - ✅ The dugout. First is taken, so you're out
+   - Run to first
+   - Stay at the plate
+   - 🧢 *First base occupied, fewer than two outs: walk to the dugout, you're out. Does he still want them to run?*
+3. **Drag the ball.** Sacrifice bunt sign, runner on first, nobody out. Here comes a strike. Drag the ball to where your bunt goes. 🧢
+   - ✅ On the ground, down the first-base line
+   - Right back to the pitcher
+   - Up in the air, over the pitcher
+   - 🧢 *Bunt down the first-base line with a runner on first. Some coaches teach the third-base side.*
+4. **Drag the ball.** Hit-and-run is on. The runner breaks, and the second baseman runs over to cover second. Drag the ball to where you want your hit to go.
+   - ✅ On the ground, through the hole he just left
+   - On the ground, right at the shortstop
+   - A high fly ball to center
+   - Foul down the first-base line
+
+## Outfield
+
+1. **Drag the ball.** Single to you in right. The runner from second is rounding third and heading home. Drag the ball to where your throw goes. 🧢
+   - ✅ Low and hard to the cutoff man, lined up with home
+   - A big rainbow all the way home
+   - Third base
+   - Second base
+   - 🧢 *First baseman as the cutoff on a throw home from right. Does his team use someone else?*
+2. **Drag the ball.** Runner on first. Base hit to you in right, and the runner is rounding second, digging for third. Drag the ball to where your throw goes. 🧢
+   - ✅ The cutoff man, lined up with third
+   - Second base, where the runner just was
+   - First base, behind the batter
+   - 🧢 *Shortstop as the cutoff to third on a single to right.*
+3. **Drag the ball.** Bases empty. Ground ball single to you in left, and the batter is rounding first. Drag the ball to where your throw goes.
+   - ✅ Into second base
+   - First base, behind the batter
+   - Home plate
+   - A lob to the pitcher
+4. **Drag the ball.** Runner on third, nobody out. You catch a shallow fly ball in left, and the runner is tagging. Drag the ball to where your throw goes. 🧢
+   - ✅ Home, ahead of the runner who is tagging
+   - Third base, where he started
+   - Second base
+   - 🧢 *Throw straight home, no cutoff shown. On a shallow fly, should the third baseman line up as cutoff?*
+5. **Drag Skip.** Ground ball to the shortstop. You're in right. Drag Skip to where you go.
+   - ✅ Behind first base, backing up the throw
+   - Stay where you are in right
+   - Cover second base
+6. **Drag Skip.** Runner on first. Single to right field, and the right fielder is throwing to third. You're in left. Drag Skip to where you go. 🧢
+   - ✅ Behind third base, backing up the throw
+   - Stay in your spot in left
+   - Cover second base
+   - 🧢 *Backup spot in foul ground behind third, on the line of the throw.*
+7. **Tap.** Fly ball into the gap between you in right and the center fielder. You both call it. Tap the player who takes it.
+   - ✅ The center fielder, he has priority
+   - You, the right fielder
+   - The second baseman
+8. **Tap.** Pop-up into shallow left. The shortstop is running back and you're running in. Tap the player who should catch it.
+   - ✅ You, the outfielder coming in
+   - The shortstop going back
+   - The third baseman
+9. **Tap.** A big right-handed hitter steps in. Tap the outfielder who should be extra ready for the ball. 🧢
+   - ✅ The left fielder, righties usually pull that way
+   - The right fielder
+   - You, in center
+   - 🧢 *Only the pull-side fielder is "extra ready". Everyone should be ready?*
+10. **Drag the ball.** Single to right. By the time you pick it up, the runner from third is already crossing home. Drag the ball to where your throw goes.
+   - ✅ Second base, to hold the batter at first
+   - Home anyway
+   - First base
+
+## First Base
+
+1. **Drag Skip.** Ground ball to the shortstop, and the batter is running hard. Drag Skip to where you go.
+   - ✅ Sprint to first base and give a target
+   - Run toward the shortstop to help
+   - Cover second base
+   - Back up the pitcher
+2. **Drag Skip.** Grounder to third. You get to the bag, but his throw is sailing way up the line toward home. Drag Skip to where you go.
+   - ✅ Off the bag and up the line to stop the ball
+   - Keep your foot on the bag and reach
+   - Let it go and chase it down behind first
+3. **Tap.** A ground ball to your right pulls you way off the bag. Tap the player who covers first. 🧢
+   - ✅ The pitcher
+   - The second baseman
+   - The catcher
+   - The right fielder
+   - 🧢 *Pitcher covers first when the first baseman is pulled off the bag.*
+4. **Drag Skip.** Runner on first, nobody else on, and he likes to steal. Drag Skip to where you play before the pitch. 🧢
+   - ✅ At the bag, holding him on
+   - Back, behind the runner
+   - Way in for a bunt
+   - 🧢 *Holding the runner with a runner on first only.*
+5. **Drag Skip.** Runners on first and second. Drag Skip to where you play before the pitch. 🧢
+   - ✅ Behind the runner at normal depth
+   - At the bag, holding the runner on
+   - Way in for a bunt
+   - 🧢 *Playing behind the runner with runners on first and second.*
+6. **Drag Skip.** Single to right and the runner from second is heading home. Drag Skip to where you go.
+   - ✅ The infield grass, lined up between right field and home
+   - Stay on first base
+   - Cover home plate
+   - Cover second base
+7. **Drag Skip.** This time the single goes to center field, and the runner from second is heading home. Drag Skip to where you go. 🧢
+   - ✅ The infield grass, lined up between center and home
+   - Stay on first base
+   - Cover home plate
+   - Cover second base
+   - 🧢 *First baseman as the cutoff on a throw home from center, pitcher backing up home.*
+8. **Drag Skip.** Runner on first, nobody out, and the batter squares to bunt. Drag Skip to where you go.
+   - ✅ Charge in to field the bunt
+   - Stay on the bag
+   - Run to cover second
+   - Back up right field
+9. **Tap.** You charged in and fielded the bunt. Tap the player who covers first base.
+   - ✅ The second baseman
+   - The shortstop
+   - The pitcher
+   - The catcher
+
+## Up the Middle
+
+1. **Tap.** Runner on first is stealing, and a left-handed batter is up. Tap the player who covers second.
+   - ✅ The shortstop
+   - You, the second baseman
+   - The pitcher
+   - The center fielder
+2. **Drag Skip.** Runner on first takes off on the pitch, and a right-handed batter is up. Drag Skip to where you go. 🧢
+   - ✅ Cover second base
+   - Stay at your spot and let the shortstop cover
+   - Back up behind second base
+   - 🧢 *Righty batter: the second baseman covers second.*
+3. **Drag the ball.** Runner on first, nobody out. Hard grounder right at you. Drag the ball to where your first throw goes.
+   - ✅ To second base, to start the double play
+   - To first base
+   - To third base
+4. **Drag Skip.** Runner on first, one out. Ground ball to the shortstop. Drag Skip to where you go.
+   - ✅ Second base, to take the throw and turn two
+   - Run toward the ball
+   - Back up first base
+   - Stand behind second base
+5. **Drag Skip.** Ball into the left-center gap, and the batter is trying for third. Drag Skip to where you go. 🧢
+   - ✅ Out toward the ball, lined up with third base
+   - Cover second base and wait
+   - Go to third base
+   - Chase the ball yourself
+   - 🧢 *Relay lines up with third because the batter is going for third.*
+6. **Drag the ball.** Close game, one out, infield in. Grounder to you, and the runner on third breaks for home. Drag the ball to where your throw goes.
+   - ✅ Home, to stop the run
+   - First, for the sure out
+   - Third base
+7. **Drag the ball.** You're up by six, nobody out, infield back. Routine grounder to you, and the runner on third heads home. Drag the ball to where your throw goes.
+   - ✅ First, for the sure out
+   - Home, to stop the run
+   - Third base
+8. **Drag the ball.** Bases loaded, two outs. Grounder to you, right next to third base. Drag the ball to the base where you get the out.
+   - ✅ Step on third, the closest force
+   - Throw home
+   - Throw across to first
+   - Flip to second
+9. **Tap.** Pop-up between you and the first baseman, and you're both calling it. Tap the player who should take it. 🧢
+   - ✅ You, the second baseman
+   - The first baseman
+   - The pitcher
+   - The catcher
+   - 🧢 *Second baseman over first baseman on a pop-up.*
+10. **Tap.** Pop-up into shallow right. You're going back for it, and the right fielder is charging in. Tap the player who should catch it. 🧢
+   - ✅ The right fielder coming in
+   - You, the second baseman
+   - The first baseman
+   - The center fielder
+   - 🧢 *Right fielder coming in over the second baseman going back.*
+
+## Around the Diamond
+
+1. **Drag Skip.** You're pitching. Ground ball to the first baseman's right, and he goes to get it. Drag Skip to where you go.
+   - ✅ Cover first base
+   - Stay on the mound and watch
+   - Back up home plate
+   - Cover second base
+2. **Drag Skip.** Runner on second, single to center. The runner is heading home and the throw is coming in. Drag Skip to where you go.
+   - ✅ Behind home plate, well back
+   - Stay on the mound
+   - Behind third base
+   - Cover first base
+3. **Drag Skip.** Runner on first, single to right. The runner is going for third and the right fielder is throwing there. Drag Skip to where you go.
+   - ✅ Behind third base, backing up the throw
+   - Behind home plate
+   - Stay on the mound
+   - Back up first base
+4. **Drag the ball.** Bases empty. Strike three gets away from you and the batter takes off. You pick it up. Drag the ball to where your throw goes. 🧢
+   - ✅ First base, to get the batter
+   - Keep it, strike three is an out
+   - Second base
+   - 🧢 *Throw to first (tagging the batter is also right, but isn't an option here).*
+5. **Drag Skip.** Nobody on. Ground ball to the shortstop. You're catching. Drag Skip to where you go.
+   - ✅ Down the line, behind first base in foul ground
+   - Stay at home plate
+   - Go to the mound
+   - Cover first base
+6. **Drag Skip.** Runner on second. Ground ball to the shortstop. You're catching. Drag Skip to where you go.
+   - ✅ Stay home, a runner is in scoring position
+   - Down the line, behind first base
+   - Go to the mound
+   - Cover first base
+7. **Drag the ball.** Runner on first, nobody out. Bunt toward you. You charge and field it, and the catcher yells "Two!" Drag the ball to where your throw goes. 🧢
+   - ✅ Second base, for the lead runner
+   - First base
+   - Third base
+   - 🧢 *"Third base" is only a filler wrong answer.*
+
+## Baserunning
+
+1. **Drag Skip.** You hit a ground ball to short, and it's going to be a close play at first. Drag Skip to where you go.
+   - ✅ Run through the bag, straight down the line
+   - Stop right on first base
+   - Turn toward second
+2. **Drag Skip.** You line a single into left field, and it gets through clean. Drag Skip to where you go as you hit first. 🧢
+   - ✅ A hard turn, a few steps toward second
+   - Stop right on first base
+   - Run straight through, down the line
+   - 🧢 *The turn spot is about halfway to second (drawn longer than a real turn).*
+3. **Drag Skip.** Two outs, you're on second. Fly ball to shallow right that might drop. Drag your runner to where you go.
+   - ✅ Run hard, all the way home
+   - Back on second to tag up
+   - Halfway to third and wait
+4. **Drag Skip.** One out, you're on first. Fly ball to medium center that might be caught. Drag your runner to where you go while it's in the air.
+   - ✅ Halfway to second
+   - All the way to second
+   - Stay on first base
+5. **Drag Skip.** Nobody out, you're leading off third. Deep fly ball to left. Drag your runner to where you go while it's in the air.
+   - ✅ Back on third base to tag up
+   - Halfway home
+   - Run home right away
+6. **Drag Skip.** Nobody out, you're leading off first. Line drive right at the second baseman. Drag your runner to where you go.
+   - ✅ Freeze, then get right back to first
+   - Halfway to second
+   - Take off for second
+7. **Drag Skip.** One out, you're on second and first base is empty. Ground ball to the third baseman. Drag your runner to where you go.
+   - ✅ Hold at second
+   - Halfway to third
+   - Run to third
+8. **Drag Skip.** Nobody out, you're on second and first base is empty. Ground ball into the hole toward the second baseman. Drag your runner to where you go.
+   - ✅ Go to third
+   - Hold at second
+   - Keep going and try to score
+9. **Drag Skip.** You're racing home, and the catcher already has the ball, waiting in front of the plate. Drag your runner to where you go. 🧢
+   - ✅ Slide to the side of the plate, away from him
+   - Run straight into the catcher
+   - Stop and go back to third
+   - 🧢 *Slide to the side of the plate, away from the catcher.*
+10. **Drag Skip.** You beat the throw and ran through first. The first baseman caught it. Drag Skip to the way you turn to come back.
+   - ✅ Turn into foul territory, then back to the bag
+   - Turn toward second, then back to the bag
+   - Head for second
+11. **Drag Skip.** You ran through first, and the throw got past the first baseman into the fence. Drag Skip to where you go.
+   - ✅ Head for second
+   - Back to first base
+   - Go all the way to third
+12. **Drag Skip.** One out, you're on first. Foul pop-up, and the first baseman catches it way over by the fence. Drag your runner to where you go. 🧢
+   - ✅ Tag up, then take second
+   - Stay on first, foul balls are dead
+   - Halfway to second
+   - 🧢 *Tag and take second after a caught foul pop by the fence.*
+13. **Drag Skip.** One out, you're on second with a runner on first. Pop-up to the shortstop, and the umpire calls infield fly. Drag your runner to where you go.
+   - ✅ Stay at second, there's no force
+   - Halfway to third
+   - Run to third, it's a force
+14. **Drag Skip.** One out, double-play ball. You're forced out at second while you're still way short of the bag, and the throw is going to first. Drag your runner to where you go. 🧢
+   - ✅ Peel off, out of the throwing lane
+   - Slide into second anyway
+   - Stay right in the base path
+   - 🧢 *After being forced out, peel off toward right-center grass.*
+15. **Drag Skip.** Nobody out, you're running from first. Ground ball to the second baseman, and he's right in your path to second. Drag your runner to where you go.
+   - ✅ Stop right here and make him chase you
+   - Sprint back to first
+   - Run right past him to second
+
+## Leads & Steals
+
+1. **Drag Skip.** You're on second. The catcher's throw back to the pitcher sails over his head into center field. Drag your runner to where you go.
+   - ✅ Take third
+   - Stay on second
+   - Go halfway and wait
+2. **Drag Skip.** Two outs, you're on second. Ground-ball single into right field. Drag your runner to where you go. 🧢
+   - ✅ All the way home to score
+   - Stop at third
+   - Go back to second
+   - 🧢 *Scoring from second on a two-out single to right.*
+3. **Drag Skip.** One out, you're leading off third. Fly ball to center field. Drag your runner to where you go while it's in the air.
+   - ✅ Straight back to third to tag up
+   - Halfway home and wait
+   - Run home right away
+4. **Drag Skip.** You're on first. The pitch bounces in the dirt and gets way past the catcher to the backstop. Drag your runner to where you go.
+   - ✅ Go to second
+   - Back to first
+   - Halfway to second and wait
+5. **Drag Skip.** You're on third. The pitch is in the dirt, but the catcher blocks it and it stops right in front of him. Drag your runner to where you go.
+   - ✅ Back to third
+   - Run home
+   - Halfway home
+6. **Drag Skip.** Runners on first and third. You're on first. The pitcher spins and fakes a throw to third. Drag your runner to where you go. 🧢
+   - ✅ Back to first, ready to dive
+   - Take off for second
+   - Break halfway to second
+   - 🧢 *On a fake to third, get back to first. Or hold the lead?*
+
+## Know the Rules
+
+1. **Drag Skip.** You hit one into the gap, and the left fielder throws his glove at it and knocks it down. Drag Skip to the base you're awarded.
+   - ✅ Third base. A thrown glove is three bases
+   - Stay at first
+   - Second base
+   - All the way home
+2. **Drag Skip.** You're on second. The pitch bounces and gets stuck in the umpire's mask. Drag Skip to the base you're awarded.
+   - ✅ Third base. Runners get one base
+   - Stay on second
+   - Score
+3. **Tap.** The scorebook says the double play went 6-4-3. Tap the player who fielded the ground ball.
+   - ✅ The shortstop, number 6
+   - The third baseman
+   - The second baseman
+   - The pitcher
+4. **Tap.** The scorer writes down a fly out to number 8. Tap the player who caught it.
+   - ✅ The center fielder, number 8
+   - The left fielder
+   - The right fielder
+   - The shortstop
+5. **Drag Skip.** You're at third. Fly ball to left, and the runner on third left before the catch and scored. The left fielder throws you the ball. Drag Skip to where you go.
+   - ✅ Step on third and appeal to the umpire
+   - Toss the ball back to the pitcher
+   - Chase the runner to home plate

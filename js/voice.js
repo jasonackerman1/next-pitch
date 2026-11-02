@@ -113,7 +113,8 @@ function choiceKey(ctx, i) {
 
 function questionKeys(ctx) {
   const keys = [`${ctx.conceptId}:${ctx.variant}:q`];
-  if (!ctx.tf) ctx.order.forEach((i, pos) => keys.push(`line:${'ABCDEF'[pos]}`, choiceKey(ctx, i)));
+  // Field questions are answered on the field, so their targets aren't read out as A, B, C.
+  if (!ctx.tf && !ctx.ask) ctx.order.forEach((i, pos) => keys.push(`line:${'ABCDEF'[pos]}`, choiceKey(ctx, i)));
   return keys;
 }
 

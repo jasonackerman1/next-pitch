@@ -1492,3 +1492,100 @@ div.lvl-head { cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .btn-listening::before, .btn-listening svg { animation: none; }
 }
+
+/* ---------- field questions: drag Skip, a runner or the ball, or tap a player ---------- */
+.field-card-ask .field-stage { width: min(100%, 420px, calc(40vh * 200 / 172)); }
+@media (min-width: 768px) { .field-card-ask .field-stage { width: min(100%, 520px, calc(52vh * 200 / 172)); } }
+.field-asking .field-stage { touch-action: none; }
+
+.field-draggable { cursor: grab; touch-action: none; z-index: 7; }
+.field-draggable.actor-you { animation: grab-me 1.4s ease-in-out infinite; }
+.field-draggable.field-ball {
+  width: calc(var(--actor) * 0.85);
+  height: calc(var(--actor) * 0.85);
+  box-shadow: 0 0 0 4px rgba(246, 185, 59, 0.55), 0 3px 6px rgba(0, 0, 0, 0.5);
+  animation: grab-me 1.4s ease-in-out infinite;
+}
+.field-dragging-el { cursor: grabbing; animation: none !important; scale: 1.15; z-index: 9; }
+@keyframes grab-me { 0%, 100% { scale: 1; } 50% { scale: 1.12; } }
+
+.field-zone {
+  position: absolute;
+  width: calc(var(--actor) * 1.7);
+  height: calc(var(--actor) * 1.7);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 1;
+  pointer-events: none;
+  transition: background 0.15s, border-color 0.15s, scale 0.15s;
+}
+.field-asking:not(.field-dragging) .field-zone:not(.field-zone-picked) { opacity: 0.55; }
+.field-zone-hot { border-color: var(--gold); background: rgba(246, 185, 59, 0.28); scale: 1.15; }
+.field-zone-picked { border: 3px solid var(--gold); background: rgba(246, 185, 59, 0.22); }
+.field-zone-right { border: 3px solid var(--green); background: rgba(63, 191, 85, 0.3); animation: zone-pop 0.4s ease-out; }
+.field-zone-wrong { border: 3px solid var(--red); background: rgba(230, 57, 45, 0.25); }
+.field-zone-wrong::after {
+  content: "\2715";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: calc(var(--actor) * 0.7);
+}
+@keyframes zone-pop { from { scale: 0.6; } to { scale: 1; } }
+
+.actor-tappable { cursor: pointer; box-shadow: 0 0 0 3px rgba(246, 185, 59, 0.55), 0 2px 4px rgba(0, 0, 0, 0.45); }
+.actor-tappable::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(246, 185, 59, 0.6);
+  animation: you-pulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+.actor-picked { box-shadow: 0 0 0 4px var(--gold), 0 2px 6px rgba(0, 0, 0, 0.5); scale: 1.2; }
+.actor-answer { box-shadow: 0 0 0 4px var(--green), 0 2px 6px rgba(0, 0, 0, 0.5); scale: 1.25; }
+.actor-wrong-pick { box-shadow: 0 0 0 4px var(--red), 0 2px 6px rgba(0, 0, 0, 0.5); }
+
+.ask-card { display: flex; flex-direction: column; gap: 10px; }
+.ask-how {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold);
+  color: #0b1626;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+.ask-how svg { width: 18px; height: 18px; }
+.ask-pick {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ask-pick-on { border: 2px solid var(--gold); color: var(--text); font-weight: 700; font-size: 1.1rem; }
+.ask-pick-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-draggable, .actor-tappable::before { animation: none !important; }
+}

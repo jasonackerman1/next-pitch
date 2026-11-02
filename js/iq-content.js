@@ -9,6 +9,14 @@
 //   { sit, prompt, tf: true|false }                          — True/False card, fixed order
 //   sit (optional): { balls, strikes, outs, runners: [1,2,3], you: 'batter'|'onDeck'|'runner1'|
 //                     'runner2'|'runner3'|'P'|'C'|'1B'|'2B'|'SS'|'3B'|'LF'|'CF'|'RF' }
+//   { sit, prompt, ask, targets: [right, wrong, ...] }       — answered ON the field (needs sit):
+//       ask: { drag: 'YOU' }               drag Skip to his spot
+//            { drag: 'R2' }                drag a runner (R1/R2/R3/B) to where he ends up
+//            { drag: 'ball', from: 'RF' }  drag the ball from whoever has it to where it goes
+//            { tap: true }                 tap the right player (targets are players)
+//       targets: [{ at, label }]  at = a base (b1 b2 b3 home), a field spot (js/field.js SPOTS),
+//       a player id, or { x, y }; label = how the answer is said ("Cover second base").
+//   Add new variants at the END of a concept (plays and voice clips are keyed by position).
 //
 // Concept fields:
 //   source: 'ghvbl' = checked against the GHVBL 11U/12U rulebook (NFHS-based);
@@ -45,6 +53,17 @@ export const IQ_UNITS = [
           {
             prompt: 'This field has an on-deck area fenced in next to your dugout. You\'re next. Where should you be?',
             choices: ['In the fenced-in on-deck area, getting loose', 'In the dugout — on deck is never allowed', 'Standing by the umpire', 'Halfway down the baseline'],
+          },
+          {
+            sit: { outs: 1, you: 'onDeck' },
+            prompt: 'You\'re up after this batter, and this field has no fenced-in on-deck area. Drag Skip to where you go.',
+            ask: { drag: 'YOU' },
+            targets: [
+              { at: 'dugout1', label: 'In the dugout, helmet on' },
+              { at: { x: 148, y: 162 }, label: 'Stay out here in the on-deck spot' },
+              { at: { x: 118, y: 156 }, label: 'Next to home plate to see the pitches' },
+              { at: 'foul3', label: 'Along the fence by the third-base line' },
+            ],
           },
         ],
       },
@@ -95,6 +114,26 @@ export const IQ_UNITS = [
             prompt: 'The ball got past everybody and there\'s no throw coming home. What do you signal the runner?',
             choices: ['Hands up — stand up, no need to slide', 'Hands down — slide', 'Wave him back to third', 'Nothing — just watch'],
           },
+          {
+            sit: { outs: 1, runners: [2], you: 'onDeck' },
+            prompt: 'You\'re on deck. Base hit to left, and the runner from second is rounding third with the throw coming home. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowLF', roll: true },
+                  { field: 'LF', to: 'shallowLF' },
+                  { run: 'B', to: 1 },
+                  { run: 'R2', to: 3 },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 114, y: 168 }, label: 'Behind home plate, to signal the runner' },
+              { at: { x: 148, y: 162 }, label: 'Stay in the on-deck spot' },
+              { at: 'foul3', label: 'Out by third base to wave him in' },
+            ],
+          },
         ],
       },
       {
@@ -115,6 +154,27 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: You only need to check the outs when you\'re playing defense.',
             tf: false,
+          },
+          {
+            sit: { outs: 2, runners: [2], you: 'RF' },
+            prompt: 'Two outs, runner on second. Ground-ball single to you in right, and the runner never stopped. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', roll: true },
+                  { field: 'YOU', to: 'shallowRF' },
+                  { run: 'R2', to: 3 },
+                  { run: 'B', to: 1 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'home', label: 'Home plate, to stop the run' },
+              { at: 'b2', label: 'Second base' },
+              { at: 'b3', label: 'Third base' },
+            ],
           },
         ],
       },
@@ -319,6 +379,32 @@ export const IQ_UNITS = [
             prompt: 'Runner on first, TWO outs. Strike three bounces away from the catcher. Can you run?',
             choices: ['Yes — with two outs you can run even with first base taken', 'No — first base is taken', 'Only if the umpire points at you', 'Only if you swung'],
           },
+          {
+            sit: { balls: 1, strikes: 2, outs: 2, runners: [1, 2], you: 'batter' },
+            prompt: 'Runners on first and second, two outs. You swing at strike three in the dirt and it gets past the catcher. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [{ ball: 'P', to: ['home', 'backstop'] }, { field: 'C', to: 'backstop' }],
+            },
+            targets: [
+              { at: 'b1', label: 'Run hard to first' },
+              { at: 'B', label: 'Stay at the plate' },
+              { at: 'dugout1', label: 'Walk back to the dugout' },
+            ],
+          },
+          {
+            sit: { balls: 2, strikes: 2, outs: 0, runners: [1], you: 'batter' },
+            prompt: 'Runner on first, nobody out. Strike three bounces away from the catcher. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [{ ball: 'P', to: ['home', 'backstop'] }, { field: 'C', to: 'backstop' }],
+            },
+            targets: [
+              { at: 'dugout1', label: 'The dugout. First is taken, so you\'re out' },
+              { at: 'b1', label: 'Run to first' },
+              { at: 'B', label: 'Stay at the plate' },
+            ],
+          },
         ],
       },
       {
@@ -385,6 +471,16 @@ export const IQ_UNITS = [
             prompt: 'True or false: On a sacrifice bunt, you\'re out but you still did your job if the runner moves up.',
             tf: true,
           },
+          {
+            sit: { balls: 0, strikes: 0, outs: 0, runners: [1], you: 'batter' },
+            prompt: 'Sacrifice bunt sign, runner on first, nobody out. Here comes a strike. Drag the ball to where your bunt goes.',
+            ask: { drag: 'ball', from: 'B', setup: [{ ball: 'P', to: 'B' }] },
+            targets: [
+              { at: 'bunt1', label: 'On the ground, down the first-base line' },
+              { at: 'P', label: 'Right back to the pitcher' },
+              { at: 'shallowCF', label: 'Up in the air, over the pitcher' },
+            ],
+          },
         ],
       },
       {
@@ -430,6 +526,21 @@ export const IQ_UNITS = [
             sit: { balls: 0, strikes: 0, outs: 1, runners: [1], you: 'runner1' },
             prompt: 'You\'re the runner on a hit-and-run. When do you go?',
             choices: ['When the pitcher commits to home — and peek in to see where the ball went', 'After the batter hits it', 'Before the pitcher is set', 'Only if it\'s a strike'],
+          },
+          {
+            sit: { balls: 1, strikes: 1, outs: 0, runners: [1], you: 'batter' },
+            prompt: 'Hit-and-run is on. The runner breaks, and the second baseman runs over to cover second. Drag the ball to where you want your hit to go.',
+            ask: {
+              drag: 'ball',
+              from: 'B',
+              setup: [[{ run: 'R1', to: 'half12' }, { field: '2B', to: 'b2' }]],
+            },
+            targets: [
+              { at: 'hole12', label: 'On the ground, through the hole he just left' },
+              { at: 'holeSS', label: 'On the ground, right at the shortstop' },
+              { at: 'shallowCF', label: 'A high fly ball to center' },
+              { at: 'foul1', label: 'Foul down the first-base line' },
+            ],
           },
         ],
       },
@@ -482,6 +593,32 @@ export const IQ_UNITS = [
             prompt: 'Where should a throw to the cutoff man arrive?',
             choices: ['Chest high, on a line', 'Over his head so it carries farther', 'On one big bounce in front of him', 'At his feet'],
           },
+          {
+            sit: { outs: 1, runners: [2], you: 'RF' },
+            prompt: 'Single to you in right. The runner from second is rounding third and heading home. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', roll: true },
+                  { field: 'YOU', to: 'shallowRF' },
+                  { run: 'R2', to: 3 },
+                  { run: 'B', to: 1 },
+                  { field: '1B', to: { x: 120, y: 112 } },
+                ],
+              ],
+            },
+            targets: [
+              {
+                at: { x: 120, y: 112 },
+                label: 'Low and hard to the cutoff man, lined up with home',
+              },
+              { at: 'home', label: 'A big rainbow all the way home' },
+              { at: 'b3', label: 'Third base' },
+              { at: 'b2', label: 'Second base' },
+            ],
+          },
         ],
       },
       {
@@ -506,6 +643,29 @@ export const IQ_UNITS = [
             prompt: 'True or false: If a runner has already rounded second, throwing behind him to second is a good idea.',
             tf: false,
           },
+          {
+            sit: { outs: 1, runners: [1], you: 'RF' },
+            prompt: 'Runner on first. Base hit to you in right, and the runner is rounding second, digging for third. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', roll: true },
+                  { field: 'YOU', to: 'shallowRF' },
+                  { run: 'R1', to: 2 },
+                  { run: 'B', to: 1 },
+                  { field: 'SS', to: { x: 88, y: 88 } },
+                  { field: '3B', to: 'b3' },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 88, y: 88 }, label: 'The cutoff man, lined up with third' },
+              { at: 'b2', label: 'Second base, where the runner just was' },
+              { at: 'b1', label: 'First base, behind the batter' },
+            ],
+          },
         ],
       },
       {
@@ -529,6 +689,28 @@ export const IQ_UNITS = [
             prompt: 'True or false: With nobody on, an outfielder should throw a single into second base.',
             tf: true,
           },
+          {
+            sit: { outs: 1, runners: [], you: 'LF' },
+            prompt: 'Bases empty. Ground ball single to you in left, and the batter is rounding first. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowLF', roll: true },
+                  { field: 'YOU', to: 'shallowLF' },
+                  { run: 'B', to: 1 },
+                  { field: 'SS', to: 'b2' },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'Into second base' },
+              { at: 'b1', label: 'First base, behind the batter' },
+              { at: 'home', label: 'Home plate' },
+              { at: 'P', label: 'A lob to the pitcher' },
+            ],
+          },
         ],
       },
       {
@@ -551,6 +733,27 @@ export const IQ_UNITS = [
             sit: { outs: 2, runners: [2, 3], you: 'CF' },
             prompt: 'Two outs, runners on second and third. Fly ball to you. You catch it. Now what?',
             choices: ['Jog it in — that\'s the third out, inning over', 'Throw home to stop the tag', 'Throw to third', 'Throw to second'],
+          },
+          {
+            sit: { outs: 0, runners: [3], you: 'LF' },
+            prompt: 'Runner on third, nobody out. You catch a shallow fly ball in left, and the runner is tagging. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowLF', fly: true },
+                  { field: 'YOU', to: 'shallowLF' },
+                  { field: 'C', to: 'home' },
+                ],
+                [{ out: 'B' }, { say: 'He\'s tagging!', who: 'R3' }],
+              ],
+            },
+            targets: [
+              { at: 'home', label: 'Home, ahead of the runner who is tagging' },
+              { at: 'b3', label: 'Third base, where he started' },
+              { at: 'b2', label: 'Second base' },
+            ],
           },
         ],
       },
@@ -576,6 +779,38 @@ export const IQ_UNITS = [
             prompt: 'Runner on first, single to right field. The right fielder is throwing to third. Where should you be?',
             choices: ['Behind third base, backing up the throw', 'In center field', 'At second base', 'Still in your spot in left'],
           },
+          {
+            sit: { outs: 0, runners: [], you: 'RF' },
+            prompt: 'Ground ball to the shortstop. You\'re in right. Drag Skip to where you go.',
+            ask: { drag: 'YOU', setup: [[{ ball: 'B', to: 'SS', roll: true }]] },
+            targets: [
+              { at: { x: 168, y: 118 }, label: 'Behind first base, backing up the throw' },
+              { at: 'RF', label: 'Stay where you are in right' },
+              { at: 'b2', label: 'Cover second base' },
+            ],
+          },
+          {
+            sit: { outs: 1, runners: [1], you: 'LF' },
+            prompt: 'Runner on first. Single to right field, and the right fielder is throwing to third. You\'re in left. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', roll: true },
+                  { field: 'RF', to: 'shallowRF' },
+                  { run: 'R1', to: 2 },
+                  { run: 'B', to: 1 },
+                  { field: 'SS', to: 'cut' },
+                  { field: '3B', to: 'b3' },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 38, y: 116 }, label: 'Behind third base, backing up the throw' },
+              { at: 'LF', label: 'Stay in your spot in left' },
+              { at: 'b2', label: 'Cover second base' },
+            ],
+          },
         ],
       },
       {
@@ -597,6 +832,46 @@ export const IQ_UNITS = [
           {
             prompt: 'What\'s the right way to call a fly ball?',
             choices: ['"I got it! I got it!" — loud and early', 'A quick wave of the glove', 'Say nothing and just go get it', 'Yell your teammate\'s name'],
+          },
+          {
+            sit: { outs: 1, runners: [], you: 'RF' },
+            prompt: 'Fly ball into the gap between you in right and the center fielder. You both call it. Tap the player who takes it.',
+            ask: {
+              tap: true,
+              setup: [
+                [
+                  { ball: 'B', to: 'gapRC', fly: true, ms: 1500 },
+                  { field: 'CF', to: { x: 124, y: 22 }, ms: 1300 },
+                  { field: 'YOU', to: { x: 150, y: 28 }, ms: 1300 },
+                  { field: '2B', to: { x: 134, y: 50 }, ms: 1300 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'CF', label: 'The center fielder, he has priority' },
+              { at: 'YOU', label: 'You, the right fielder' },
+              { at: '2B', label: 'The second baseman' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [1], you: 'LF' },
+            prompt: 'Pop-up into shallow left. The shortstop is running back and you\'re running in. Tap the player who should catch it.',
+            ask: {
+              tap: true,
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowLF', fly: true, ms: 1500 },
+                  { field: 'YOU', to: { x: 46, y: 52 }, ms: 1300 },
+                  { field: 'SS', to: { x: 64, y: 68 }, ms: 1300 },
+                  { field: '3B', to: { x: 52, y: 80 }, ms: 1300 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'YOU', label: 'You, the outfielder coming in' },
+              { at: 'SS', label: 'The shortstop going back' },
+              { at: '3B', label: 'The third baseman' },
+            ],
           },
         ],
       },
@@ -665,6 +940,16 @@ export const IQ_UNITS = [
             prompt: 'True or false: Outfielders should notice whether the batter is righty or lefty.',
             tf: true,
           },
+          {
+            sit: { outs: 0, runners: [], you: 'CF' },
+            prompt: 'A big right-handed hitter steps in. Tap the outfielder who should be extra ready for the ball.',
+            ask: { tap: true, setup: [{ say: 'Righty up.', who: 'B' }] },
+            targets: [
+              { at: 'LF', label: 'The left fielder, righties usually pull that way' },
+              { at: 'RF', label: 'The right fielder' },
+              { at: 'YOU', label: 'You, in center' },
+            ],
+          },
         ],
       },
       {
@@ -731,6 +1016,29 @@ export const IQ_UNITS = [
             prompt: 'True or false: An outfielder should get the ball back to the infield as fast as possible, every play.',
             tf: true,
           },
+          {
+            sit: { outs: 0, runners: [3], you: 'RF' },
+            prompt: 'Single to right. By the time you pick it up, the runner from third is already crossing home. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', roll: true },
+                  { field: 'YOU', to: 'shallowRF' },
+                  { run: 'R3', to: 'home' },
+                  { run: 'B', to: 1 },
+                  { field: '2B', to: 'b2' },
+                ],
+                [{ safe: 'R3' }],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'Second base, to hold the batter at first' },
+              { at: 'home', label: 'Home anyway' },
+              { at: 'b1', label: 'First base' },
+            ],
+          },
         ],
       },
     ],
@@ -759,6 +1067,20 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: First basemen should give a target with the glove once they reach the bag.',
             tf: true,
+          },
+          {
+            sit: { outs: 1, runners: [], you: '1B' },
+            prompt: 'Ground ball to the shortstop, and the batter is running hard. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [[{ ball: 'B', to: 'SS', roll: true }, { run: 'B', to: { x: 112, y: 128 } }]],
+            },
+            targets: [
+              { at: 'b1', label: 'Sprint to first base and give a target' },
+              { at: { x: 84, y: 90 }, label: 'Run toward the shortstop to help' },
+              { at: 'b2', label: 'Cover second base' },
+              { at: { x: 116, y: 124 }, label: 'Back up the pitcher' },
+            ],
           },
         ],
       },
@@ -805,6 +1127,25 @@ export const IQ_UNITS = [
             prompt: 'Two outs, runner on third. The throw to you is in the dirt and wide. What matters most?',
             choices: ['Keep the ball in front of you so the run can\'t score', 'Keep your foot on the bag no matter what', 'Catch it in the air or nothing', 'Turn your head away'],
           },
+          {
+            sit: { outs: 1, runners: [2], you: '1B' },
+            prompt: 'Grounder to third. You get to the bag, but his throw is sailing way up the line toward home. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: '3B', roll: true },
+                  { field: 'YOU', to: 'b1' },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 130, y: 134 }, label: 'Off the bag and up the line to stop the ball' },
+              { at: 'b1', label: 'Keep your foot on the bag and reach' },
+              { at: { x: 170, y: 132 }, label: 'Let it go and chase it down behind first' },
+            ],
+          },
         ],
       },
       {
@@ -826,6 +1167,26 @@ export const IQ_UNITS = [
             sit: { outs: 0, runners: [], you: '1B' },
             prompt: 'True or false: On a ground ball to the first baseman\'s right, the pitcher should run to cover first.',
             tf: true,
+          },
+          {
+            sit: { outs: 1, runners: [], you: '1B' },
+            prompt: 'A ground ball to your right pulls you way off the bag. Tap the player who covers first.',
+            ask: {
+              tap: true,
+              setup: [
+                [
+                  { ball: 'B', to: 'hole12', roll: true },
+                  { field: 'YOU', to: 'hole12' },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'P', label: 'The pitcher' },
+              { at: '2B', label: 'The second baseman' },
+              { at: 'C', label: 'The catcher' },
+              { at: 'RF', label: 'The right fielder' },
+            ],
           },
         ],
       },
@@ -851,6 +1212,16 @@ export const IQ_UNITS = [
             prompt: 'True or false: Once the pitcher delivers to the plate, a first baseman holding the runner should hop off into a fielding stance.',
             tf: true,
           },
+          {
+            sit: { balls: 0, strikes: 0, outs: 1, runners: [1], you: '1B' },
+            prompt: 'Runner on first, nobody else on, and he likes to steal. Drag Skip to where you play before the pitch.',
+            ask: { drag: 'YOU', setup: [[{ run: 'R1', to: 'lead1' }]] },
+            targets: [
+              { at: 'b1', label: 'At the bag, holding him on' },
+              { at: { x: 142, y: 74 }, label: 'Back, behind the runner' },
+              { at: 'bunt1', label: 'Way in for a bunt' },
+            ],
+          },
         ],
       },
       {
@@ -874,6 +1245,16 @@ export const IQ_UNITS = [
             sit: { outs: 1, runners: [1, 2], you: '1B' },
             prompt: 'True or false: With first and second occupied, the runner on first is the big stealing threat.',
             tf: false,
+          },
+          {
+            sit: { outs: 1, runners: [1, 2], you: '1B' },
+            prompt: 'Runners on first and second. Drag Skip to where you play before the pitch.',
+            ask: { drag: 'YOU', setup: [[{ run: 'R1', to: 'lead1' }, { run: 'R2', to: 'lead2' }]] },
+            targets: [
+              { at: { x: 142, y: 74 }, label: 'Behind the runner at normal depth' },
+              { at: 'b1', label: 'At the bag, holding the runner on' },
+              { at: 'bunt1', label: 'Way in for a bunt' },
+            ],
           },
         ],
       },
@@ -899,6 +1280,43 @@ export const IQ_UNITS = [
             prompt: 'The catcher yells "Cut two!" What does that mean?',
             choices: ['Catch the throw and fire to second base', 'Let it go through to home', 'Catch it and hold it', 'Throw to first'],
           },
+          {
+            sit: { outs: 1, runners: [2], you: '1B' },
+            prompt: 'Single to right and the runner from second is heading home. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [[{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'RF', to: 'shallowRF' }, { run: 'R2', to: 3 }]],
+            },
+            targets: [
+              { at: { x: 114, y: 118 }, label: 'The infield grass, lined up between right field and home' },
+              { at: 'b1', label: 'Stay on first base' },
+              { at: 'home', label: 'Cover home plate' },
+              { at: 'b2', label: 'Cover second base' },
+            ],
+          },
+          {
+            sit: { outs: 1, runners: [2], you: '1B' },
+            prompt: 'This time the single goes to center field, and the runner from second is heading home. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowCF', roll: true },
+                  { field: 'CF', to: 'shallowCF' },
+                  { run: 'R2', to: 3 },
+                ],
+              ],
+            },
+            targets: [
+              {
+                at: { x: 100, y: 118 },
+                label: 'The infield grass, lined up between center and home',
+              },
+              { at: 'b1', label: 'Stay on first base' },
+              { at: 'home', label: 'Cover home plate' },
+              { at: 'b2', label: 'Cover second base' },
+            ],
+          },
         ],
       },
       {
@@ -922,6 +1340,39 @@ export const IQ_UNITS = [
             sit: { outs: 0, runners: [1], you: '1B' },
             prompt: 'You field the bunt. The catcher yells "One! One!" Where do you throw?',
             choices: ['To first base, to the second baseman covering', 'To second, for the lead runner', 'Home', 'Hold it'],
+          },
+          {
+            sit: { balls: 0, strikes: 0, outs: 0, runners: [1], you: '1B' },
+            prompt: 'Runner on first, nobody out, and the batter squares to bunt. Drag Skip to where you go.',
+            ask: { drag: 'YOU', setup: [[{ run: 'R1', to: 'lead1' }, { ball: 'P', to: 'home' }]] },
+            targets: [
+              { at: 'bunt1', label: 'Charge in to field the bunt' },
+              { at: 'b1', label: 'Stay on the bag' },
+              { at: 'b2', label: 'Run to cover second' },
+              { at: { x: 166, y: 70 }, label: 'Back up right field' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [1], you: '1B' },
+            prompt: 'You charged in and fielded the bunt. Tap the player who covers first base.',
+            ask: {
+              tap: true,
+              setup: [
+                [{ ball: 'P', to: 'home' }],
+                [
+                  { ball: 'home', to: 'bunt1', roll: true },
+                  { field: 'YOU', to: 'bunt1' },
+                  { run: 'R1', to: 'half12' },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: '2B', label: 'The second baseman' },
+              { at: 'SS', label: 'The shortstop' },
+              { at: 'P', label: 'The pitcher' },
+              { at: 'C', label: 'The catcher' },
+            ],
           },
         ],
       },
@@ -976,6 +1427,27 @@ export const IQ_UNITS = [
             prompt: 'When should you and the shortstop decide who covers?',
             choices: ['Before the pitch — use a quick signal', 'After the runner takes off', 'Whoever gets there first', 'Between innings only'],
           },
+          {
+            sit: { balls: 0, strikes: 0, outs: 1, runners: [1], you: '2B' },
+            prompt: 'Runner on first is stealing, and a left-handed batter is up. Tap the player who covers second.',
+            ask: { tap: true, setup: [[{ run: 'R1', to: 'lead1' }]] },
+            targets: [
+              { at: 'SS', label: 'The shortstop' },
+              { at: 'YOU', label: 'You, the second baseman' },
+              { at: 'P', label: 'The pitcher' },
+              { at: 'CF', label: 'The center fielder' },
+            ],
+          },
+          {
+            sit: { balls: 0, strikes: 0, outs: 1, runners: [1], you: '2B' },
+            prompt: 'Runner on first takes off on the pitch, and a right-handed batter is up. Drag Skip to where you go.',
+            ask: { drag: 'YOU', setup: [[{ ball: 'P', to: 'C' }, { run: 'R1', to: 'half12' }]] },
+            targets: [
+              { at: 'b2', label: 'Cover second base' },
+              { at: { x: 130, y: 76 }, label: 'Stay at your spot and let the shortstop cover' },
+              { at: { x: 112, y: 30 }, label: 'Back up behind second base' },
+            ],
+          },
         ],
       },
       {
@@ -998,6 +1470,49 @@ export const IQ_UNITS = [
             sit: { outs: 2, runners: [1], you: 'SS' },
             prompt: 'Runner on first, TWO outs. Grounder to you near second base. What\'s the play?',
             choices: ['Get the easy out — step on second or throw to whichever base is surest', 'Try to turn two', 'Throw home', 'Hold it'],
+          },
+          {
+            sit: { outs: 0, runners: [1], you: 'SS' },
+            prompt: 'Runner on first, nobody out. Hard grounder right at you. Drag the ball to where your first throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'YOU', roll: true },
+                  { field: '2B', to: 'b2' },
+                  { field: '1B', to: 'b1' },
+                  { run: 'R1', to: 'half12' },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'To second base, to start the double play' },
+              { at: 'b1', label: 'To first base' },
+              { at: 'b3', label: 'To third base' },
+            ],
+          },
+          {
+            sit: { outs: 1, runners: [1], you: '2B' },
+            prompt: 'Runner on first, one out. Ground ball to the shortstop. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'SS', roll: true },
+                  { field: '1B', to: 'b1' },
+                  { run: 'R1', to: 'half12' },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'Second base, to take the throw and turn two' },
+              { at: { x: 80, y: 86 }, label: 'Run toward the ball' },
+              { at: { x: 165, y: 120 }, label: 'Back up first base' },
+              { at: { x: 100, y: 28 }, label: 'Stand behind second base' },
+            ],
           },
         ],
       },
@@ -1044,6 +1559,26 @@ export const IQ_UNITS = [
             prompt: 'True or false: A relay man should yell and wave his arms so the outfielder can find him fast.',
             tf: true,
           },
+          {
+            sit: { outs: 1, runners: [], you: 'SS' },
+            prompt: 'Ball into the left-center gap, and the batter is trying for third. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'gapLC', fly: true },
+                  { field: 'CF', to: 'gapLC' },
+                  { run: 'B', to: 1 },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 60, y: 56 }, label: 'Out toward the ball, lined up with third base' },
+              { at: 'b2', label: 'Cover second base and wait' },
+              { at: 'b3', label: 'Go to third base' },
+              { at: 'gapLC', label: 'Chase the ball yourself' },
+            ],
+          },
         ],
       },
       {
@@ -1068,6 +1603,48 @@ export const IQ_UNITS = [
             prompt: 'Infield in, runner on third. Grounder to you but the runner stays at third. What now?',
             choices: ['Look him back to third, then throw to first', 'Throw home anyway', 'Run at the runner', 'Throw to third'],
           },
+          {
+            sit: { outs: 1, runners: [3], you: '2B' },
+            prompt: 'Close game, one out, infield in. Grounder to you, and the runner on third breaks for home. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [{ field: 'YOU', to: { x: 118, y: 90 } }, { field: 'SS', to: { x: 82, y: 90 } }],
+                [
+                  { ball: 'B', to: 'YOU', roll: true },
+                  { run: 'R3', to: { x: 68, y: 118 } },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'home', label: 'Home, to stop the run' },
+              { at: 'b1', label: 'First, for the sure out' },
+              { at: 'b3', label: 'Third base' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [3], you: 'SS' },
+            prompt: 'You\'re up by six, nobody out, infield back. Routine grounder to you, and the runner on third heads home. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'YOU', roll: true },
+                  { field: '1B', to: 'b1' },
+                  { run: 'R3', to: { x: 68, y: 118 } },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b1', label: 'First, for the sure out' },
+              { at: 'home', label: 'Home, to stop the run' },
+              { at: 'b3', label: 'Third base' },
+            ],
+          },
         ],
       },
       {
@@ -1089,6 +1666,31 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: With two outs, a double play doesn\'t matter — one out ends the inning.',
             tf: true,
+          },
+          {
+            sit: { outs: 2, runners: [1, 2, 3], you: 'SS' },
+            prompt: 'Bases loaded, two outs. Grounder to you, right next to third base. Drag the ball to the base where you get the out.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: { x: 64, y: 98 }, roll: true },
+                  { field: 'YOU', to: { x: 64, y: 98 } },
+                  { field: '3B', to: { x: 70, y: 118 } },
+                  { run: 'R3', to: { x: 72, y: 122 } },
+                  { run: 'R2', to: 'half23' },
+                  { run: 'R1', to: 'half12' },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b3', label: 'Step on third, the closest force' },
+              { at: 'home', label: 'Throw home' },
+              { at: 'b1', label: 'Throw across to first' },
+              { at: 'b2', label: 'Flip to second' },
+            ],
           },
         ],
       },
@@ -1112,6 +1714,49 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: The pitcher should usually take pop-ups in the infield.',
             tf: false,
+          },
+          {
+            sit: { outs: 1, runners: [], you: '2B' },
+            prompt: 'Pop-up between you and the first baseman, and you\'re both calling it. Tap the player who should take it.',
+            ask: {
+              tap: true,
+              setup: [
+                [
+                  { ball: 'B', to: { x: 132, y: 80 }, fly: true, ms: 1200 },
+                  { field: 'YOU', to: { x: 128, y: 76 } },
+                  { field: '1B', to: { x: 138, y: 88 } },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'YOU', label: 'You, the second baseman' },
+              { at: '1B', label: 'The first baseman' },
+              { at: 'P', label: 'The pitcher' },
+              { at: 'C', label: 'The catcher' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [1], you: '2B' },
+            prompt: 'Pop-up into shallow right. You\'re going back for it, and the right fielder is charging in. Tap the player who should catch it.',
+            ask: {
+              tap: true,
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', fly: true, ms: 1400 },
+                  { field: 'RF', to: { x: 152, y: 54 } },
+                  { field: 'YOU', to: { x: 136, y: 66 } },
+                  { run: 'R1', to: 'lead1' },
+                  { run: 'B', to: { x: 112, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'RF', label: 'The right fielder coming in' },
+              { at: 'YOU', label: 'You, the second baseman' },
+              { at: '1B', label: 'The first baseman' },
+              { at: 'CF', label: 'The center fielder' },
+            ],
           },
         ],
       },
@@ -1142,6 +1787,20 @@ export const IQ_UNITS = [
             prompt: 'True or false: A pitcher should break toward first on EVERY ground ball to the right side.',
             tf: true,
           },
+          {
+            sit: { outs: 0, runners: [], you: 'P' },
+            prompt: 'You\'re pitching. Ground ball to the first baseman\'s right, and he goes to get it. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [[{ ball: 'B', to: 'hole12', roll: true }, { field: '1B', to: 'hole12' }]],
+            },
+            targets: [
+              { at: 'b1', label: 'Cover first base' },
+              { at: 'mound', label: 'Stay on the mound and watch' },
+              { at: 'home', label: 'Back up home plate' },
+              { at: 'b2', label: 'Cover second base' },
+            ],
+          },
         ],
       },
       {
@@ -1163,6 +1822,47 @@ export const IQ_UNITS = [
           {
             prompt: 'How far behind the base should a backup stand?',
             choices: ['Far back, so a bad throw bounces to you instead of past you', 'Right behind the fielder', 'In the base path', 'It doesn\'t matter'],
+          },
+          {
+            sit: { outs: 1, runners: [2], you: 'P' },
+            prompt: 'Runner on second, single to center. The runner is heading home and the throw is coming in. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowCF', roll: true },
+                  { field: 'CF', to: 'shallowCF' },
+                  { run: 'R2', to: 3 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'backstop', label: 'Behind home plate, well back' },
+              { at: 'mound', label: 'Stay on the mound' },
+              { at: 'foul3', label: 'Behind third base' },
+              { at: 'b1', label: 'Cover first base' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [1], you: 'P' },
+            prompt: 'Runner on first, single to right. The runner is going for third and the right fielder is throwing there. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', roll: true },
+                  { field: 'RF', to: 'shallowRF' },
+                  { run: 'R1', to: 2 },
+                  { run: 'B', to: 1 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'foul3', label: 'Behind third base, backing up the throw' },
+              { at: 'backstop', label: 'Behind home plate' },
+              { at: 'mound', label: 'Stay on the mound' },
+              { at: 'b1', label: 'Back up first base' },
+            ],
           },
         ],
       },
@@ -1187,6 +1887,27 @@ export const IQ_UNITS = [
             prompt: 'Bases loaded, two outs. You drop strike three. What\'s the quickest out?',
             choices: ['Step on home plate — it\'s a force', 'Throw to first only', 'Tag the batter only', 'There\'s no out to get'],
           },
+          {
+            sit: { balls: 2, strikes: 2, outs: 0, runners: [], you: 'C' },
+            prompt: 'Bases empty. Strike three gets away from you and the batter takes off. You pick it up. Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'C',
+              setup: [
+                [{ ball: 'P', to: { x: 108, y: 166 } }],
+                [
+                  { field: 'C', to: { x: 108, y: 164 } },
+                  { run: 'B', to: { x: 118, y: 132 } },
+                  { field: '1B', to: 'b1' },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b1', label: 'First base, to get the batter' },
+              { at: 'home', label: 'Keep it, strike three is an out' },
+              { at: 'b2', label: 'Second base' },
+            ],
+          },
         ],
       },
       {
@@ -1208,6 +1929,47 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: Catchers only ever stay at home plate.',
             tf: false,
+          },
+          {
+            sit: { outs: 0, runners: [], you: 'C' },
+            prompt: 'Nobody on. Ground ball to the shortstop. You\'re catching. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'holeSS', roll: true },
+                  { field: 'SS', to: 'holeSS' },
+                  { run: 'B', to: { x: 112, y: 138 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 168, y: 126 }, label: 'Down the line, behind first base in foul ground' },
+              { at: 'home', label: 'Stay at home plate' },
+              { at: 'mound', label: 'Go to the mound' },
+              { at: 'b1', label: 'Cover first base' },
+            ],
+          },
+          {
+            sit: { outs: 1, runners: [2], you: 'C' },
+            prompt: 'Runner on second. Ground ball to the shortstop. You\'re catching. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'holeSS', roll: true },
+                  { field: 'SS', to: 'holeSS' },
+                  { run: 'B', to: { x: 112, y: 138 } },
+                  { run: 'R2', to: 'lead2' },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'home', label: 'Stay home, a runner is in scoring position' },
+              { at: { x: 168, y: 126 }, label: 'Down the line, behind first base' },
+              { at: 'mound', label: 'Go to the mound' },
+              { at: 'b1', label: 'Cover first base' },
+            ],
           },
         ],
       },
@@ -1231,6 +1993,29 @@ export const IQ_UNITS = [
             sit: { outs: 0, runners: [], you: '3B' },
             prompt: 'A bunt is rolling right along the foul line and you can\'t make a play. What can you do?',
             choices: ['Let it roll — if it crosses into foul territory before you touch it, it\'s a foul ball', 'Pick it up and hope', 'Kick it foul', 'Throw it to first anyway'],
+          },
+          {
+            sit: { outs: 0, runners: [1], you: '3B' },
+            prompt: 'Runner on first, nobody out. Bunt toward you. You charge and field it, and the catcher yells "Two!" Drag the ball to where your throw goes.',
+            ask: {
+              drag: 'ball',
+              from: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'bunt3', roll: true },
+                  { field: 'YOU', to: 'bunt3' },
+                  { field: 'SS', to: 'b2' },
+                  { field: '2B', to: 'b1' },
+                  { run: 'R1', to: 'half12' },
+                  { run: 'B', to: { x: 112, y: 138 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'Second base, for the lead runner' },
+              { at: 'b1', label: 'First base' },
+              { at: 'b3', label: 'Third base' },
+            ],
           },
         ],
       },
@@ -1284,6 +2069,19 @@ export const IQ_UNITS = [
             prompt: 'True or false: Sliding into first is faster than running through it.',
             tf: false,
           },
+          {
+            sit: { outs: 1, runners: [], you: 'batter' },
+            prompt: 'You hit a ground ball to short, and it\'s going to be a close play at first. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [[{ ball: 'B', to: 'SS', roll: true }, { run: 'B', to: { x: 128, y: 122 } }]],
+            },
+            targets: [
+              { at: { x: 167, y: 83 }, label: 'Run through the bag, straight down the line' },
+              { at: 'b1', label: 'Stop right on first base' },
+              { at: 'half12', label: 'Turn toward second' },
+            ],
+          },
         ],
       },
       {
@@ -1305,6 +2103,25 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: On a base hit, you should always stop right on first base.',
             tf: false,
+          },
+          {
+            sit: { outs: 1, runners: [], you: 'batter' },
+            prompt: 'You line a single into left field, and it gets through clean. Drag Skip to where you go as you hit first.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowLF' },
+                  { field: 'LF', to: 'shallowLF' },
+                  { run: 'B', to: { x: 132, y: 134 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 124, y: 82 }, label: 'A hard turn, a few steps toward second' },
+              { at: 'b1', label: 'Stop right on first base' },
+              { at: { x: 167, y: 83 }, label: 'Run straight through, down the line' },
+            ],
           },
         ],
       },
@@ -1329,6 +2146,24 @@ export const IQ_UNITS = [
             prompt: 'True or false: With two outs, a runner on third should run on any batted ball.',
             tf: true,
           },
+          {
+            sit: { outs: 2, runners: [2], you: 'runner2' },
+            prompt: 'Two outs, you\'re on second. Fly ball to shallow right that might drop. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowRF', fly: true, ms: 1400 },
+                  { field: 'RF', to: { x: 154, y: 52 }, ms: 1400 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'home', label: 'Run hard, all the way home' },
+              { at: 'b2', label: 'Back on second to tag up' },
+              { at: 'half23', label: 'Halfway to third and wait' },
+            ],
+          },
         ],
       },
       {
@@ -1351,6 +2186,35 @@ export const IQ_UNITS = [
             sit: { outs: 1, runners: [2], you: 'runner2' },
             prompt: 'One out, you\'re on second. Deep fly to right. Tag up?',
             choices: ['Yes — tag and take third after the catch', 'No — run on contact', 'Go halfway', 'Run home'],
+          },
+          {
+            sit: { outs: 1, runners: [1], you: 'runner1' },
+            prompt: 'One out, you\'re on first. Fly ball to medium center that might be caught. Drag your runner to where you go while it\'s in the air.',
+            ask: { drag: 'YOU', setup: [[{ ball: 'B', to: 'shallowCF', fly: true }, { field: 'CF', to: 'shallowCF' }]] },
+            targets: [
+              { at: 'half12', label: 'Halfway to second' },
+              { at: 'b2', label: 'All the way to second' },
+              { at: 'b1', label: 'Stay on first base' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [3], you: 'runner3' },
+            prompt: 'Nobody out, you\'re leading off third. Deep fly ball to left. Drag your runner to where you go while it\'s in the air.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [{ run: 'YOU', to: 'lead3' }, { ball: 'P', to: 'C' }],
+                [
+                  { ball: 'B', to: 'deepLF', fly: true, ms: 1500 },
+                  { field: 'LF', to: 'deepLF', ms: 1500 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b3', label: 'Back on third base to tag up' },
+              { at: 'half3H', label: 'Halfway home' },
+              { at: 'home', label: 'Run home right away' },
+            ],
           },
         ],
       },
@@ -1397,6 +2261,19 @@ export const IQ_UNITS = [
             prompt: 'TWO outs, you\'re on first. Line drive. Freeze?',
             choices: ['No — with two outs, run on contact', 'Yes, always freeze', 'Go halfway', 'Only on a liner to the outfield'],
           },
+          {
+            sit: { outs: 0, runners: [1], you: 'runner1' },
+            prompt: 'Nobody out, you\'re leading off first. Line drive right at the second baseman. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [[{ run: 'YOU', to: 'lead1' }, { ball: 'P', to: 'C' }], [{ ball: 'B', to: '2B' }]],
+            },
+            targets: [
+              { at: 'b1', label: 'Freeze, then get right back to first' },
+              { at: 'half12', label: 'Halfway to second' },
+              { at: 'b2', label: 'Take off for second' },
+            ],
+          },
         ],
       },
       {
@@ -1419,6 +2296,35 @@ export const IQ_UNITS = [
             sit: { outs: 1, runners: [1, 2], you: 'runner2' },
             prompt: 'Runners on first and second, ground ball to short. Can you hold at second?',
             choices: ['No — it\'s a force, you have to run to third', 'Yes, it\'s in front of you', 'Only with two outs', 'Go back to first'],
+          },
+          {
+            sit: { outs: 1, runners: [2], you: 'runner2' },
+            prompt: 'One out, you\'re on second and first base is empty. Ground ball to the third baseman. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [[{ run: 'YOU', to: 'lead2' }], [{ ball: 'B', to: '3B', roll: true }]],
+            },
+            targets: [
+              { at: 'b2', label: 'Hold at second' },
+              { at: 'half23', label: 'Halfway to third' },
+              { at: 'b3', label: 'Run to third' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [2], you: 'runner2' },
+            prompt: 'Nobody out, you\'re on second and first base is empty. Ground ball into the hole toward the second baseman. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [{ run: 'YOU', to: 'lead2' }],
+                [{ ball: 'B', to: 'hole12', roll: true }, { field: '2B', to: 'hole12' }],
+              ],
+            },
+            targets: [
+              { at: 'b3', label: 'Go to third' },
+              { at: 'b2', label: 'Hold at second' },
+              { at: 'home', label: 'Keep going and try to score' },
+            ],
           },
         ],
       },
@@ -1485,6 +2391,25 @@ export const IQ_UNITS = [
             prompt: 'In your 12U league, is a headfirst slide allowed?',
             choices: ['Yes', 'No, never', 'Only into home', 'Only with two outs'],
           },
+          {
+            sit: { outs: 1, runners: [3], you: 'runner3' },
+            prompt: 'You\'re racing home, and the catcher already has the ball, waiting in front of the plate. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { run: 'YOU', to: 'half3H' },
+                  { field: 'C', to: { x: 96, y: 140 } },
+                  { ball: 'SS', to: 'C' },
+                ],
+              ],
+            },
+            targets: [
+              { at: { x: 72, y: 158 }, label: 'Slide to the side of the plate, away from him' },
+              { at: { x: 96, y: 138 }, label: 'Run straight into the catcher' },
+              { at: 'b3', label: 'Stop and go back to third' },
+            ],
+          },
         ],
       },
       {
@@ -1507,6 +2432,40 @@ export const IQ_UNITS = [
             sit: { outs: 2, runners: [], you: 'batter' },
             prompt: 'True or false: Turning toward second after running through first can get you tagged out.',
             tf: true,
+          },
+          {
+            sit: { outs: 1, runners: [], you: 'batter' },
+            prompt: 'You beat the throw and ran through first. The first baseman caught it. Drag Skip to the way you turn to come back.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [{ ball: 'B', to: 'SS', roll: true }],
+                [{ run: 'B', to: 1, ms: 900 }, { ball: 'SS', to: '1B', ms: 1000 }],
+                [{ run: 'B', to: { x: 157, y: 93 } }],
+              ],
+            },
+            targets: [
+              { at: { x: 176, y: 100 }, label: 'Turn into foul territory, then back to the bag' },
+              { at: { x: 146, y: 82 }, label: 'Turn toward second, then back to the bag' },
+              { at: 'b2', label: 'Head for second' },
+            ],
+          },
+          {
+            sit: { outs: 0, runners: [], you: 'batter' },
+            prompt: 'You ran through first, and the throw got past the first baseman into the fence. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [{ ball: 'B', to: 'SS', roll: true }],
+                [{ run: 'B', to: 1, ms: 900 }, { ball: 'SS', to: 'foul1', ms: 900 }],
+                [{ run: 'B', to: { x: 157, y: 93 } }],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'Head for second' },
+              { at: 'b1', label: 'Back to first base' },
+              { at: 'b3', label: 'Go all the way to third' },
+            ],
           },
         ],
       },
@@ -1554,6 +2513,24 @@ export const IQ_UNITS = [
             prompt: 'You\'re stealing. The batter foul-tips the pitch and the catcher holds on. Do you have to go back to first?',
             choices: ['No — a caught foul tip is just a strike, keep running', 'Yes — tag up first', 'Yes — it\'s a dead ball', 'Only if the umpire says so'],
           },
+          {
+            sit: { outs: 1, runners: [1], you: 'runner1' },
+            prompt: 'One out, you\'re on first. Foul pop-up, and the first baseman catches it way over by the fence. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'foul1', fly: true, ms: 1400 },
+                  { field: '1B', to: 'foul1', ms: 1400 },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'Tag up, then take second' },
+              { at: 'b1', label: 'Stay on first, foul balls are dead' },
+              { at: 'half12', label: 'Halfway to second' },
+            ],
+          },
         ],
       },
       {
@@ -1576,6 +2553,26 @@ export const IQ_UNITS = [
             sit: { outs: 1, runners: [1, 2], you: 'runner2' },
             prompt: 'Infield fly is called and the second baseman drops it. Can you try for third?',
             choices: ['Yes, at your own risk — but you don\'t have to', 'No, never', 'You have to', 'Only if you tagged'],
+          },
+          {
+            sit: { outs: 1, runners: [1, 2], you: 'runner2' },
+            prompt: 'One out, you\'re on second with a runner on first. Pop-up to the shortstop, and the umpire calls infield fly. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'SS', fly: true, ms: 1400 },
+                  { run: 'R1', to: 'lead1' },
+                  { run: 'YOU', to: 'lead2' },
+                ],
+                [{ say: 'Infield fly! Batter is out.' }, { out: 'B' }],
+              ],
+            },
+            targets: [
+              { at: 'b2', label: 'Stay at second, there\'s no force' },
+              { at: 'half23', label: 'Halfway to third' },
+              { at: 'b3', label: 'Run to third, it\'s a force' },
+            ],
           },
         ],
       },
@@ -1600,6 +2597,27 @@ export const IQ_UNITS = [
             prompt: 'True or false: In your league, sliding hard into the fielder to break up a double play is part of the game.',
             tf: false,
           },
+          {
+            sit: { outs: 1, runners: [1], you: 'runner1' },
+            prompt: 'One out, double-play ball. You\'re forced out at second while you\'re still way short of the bag, and the throw is going to first. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'SS', roll: true },
+                  { run: 'YOU', to: 'half12' },
+                  { field: '2B', to: 'b2' },
+                  { run: 'B', to: { x: 118, y: 132 } },
+                ],
+                [{ ball: 'SS', to: '2B' }, { out: 'YOU' }],
+              ],
+            },
+            targets: [
+              { at: { x: 138, y: 56 }, label: 'Peel off, out of the throwing lane' },
+              { at: 'b2', label: 'Slide into second anyway' },
+              { at: 'half12', label: 'Stay right in the base path' },
+            ],
+          },
         ],
       },
       {
@@ -1621,6 +2639,26 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: Stalling to make a fielder chase you can save your team a double play.',
             tf: true,
+          },
+          {
+            sit: { outs: 0, runners: [1], you: 'runner1' },
+            prompt: 'Nobody out, you\'re running from first. Ground ball to the second baseman, and he\'s right in your path to second. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { run: 'YOU', to: 'half12' },
+                  { ball: 'B', to: { x: 112, y: 72 }, roll: true },
+                  { field: '2B', to: { x: 112, y: 72 } },
+                  { run: 'B', to: { x: 118, y: 132 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'half12', label: 'Stop right here and make him chase you' },
+              { at: 'b1', label: 'Sprint back to first' },
+              { at: 'b2', label: 'Run right past him to second' },
+            ],
           },
         ],
       },
@@ -1718,6 +2756,22 @@ export const IQ_UNITS = [
             prompt: 'When should you think about what you\'ll do if the next pitch goes in the dirt?',
             choices: ['Before the pitch', 'After it hits the dirt', 'When the coach yells', 'Never — just react'],
           },
+          {
+            sit: { outs: 1, runners: [2], you: 'runner2' },
+            prompt: 'You\'re on second. The catcher\'s throw back to the pitcher sails over his head into center field. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [{ ball: 'P', to: 'C' }, { run: 'YOU', to: 'lead2' }],
+                [{ ball: 'C', to: 'shallowCF', fly: true }, { field: 'CF', to: { x: 100, y: 34 } }],
+              ],
+            },
+            targets: [
+              { at: 'b3', label: 'Take third' },
+              { at: 'b2', label: 'Stay on second' },
+              { at: 'half23', label: 'Go halfway and wait' },
+            ],
+          },
         ],
       },
       {
@@ -1787,6 +2841,27 @@ export const IQ_UNITS = [
             prompt: 'True or false: With two outs, you run on contact from second and you have to score on a hit to the outfield.',
             tf: true,
           },
+          {
+            sit: { outs: 2, runners: [2], you: 'runner2' },
+            prompt: 'Two outs, you\'re on second. Ground-ball single into right field. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [{ run: 'YOU', to: 'lead2' }, { ball: 'P', to: 'C' }],
+                [
+                  { ball: 'B', to: 'shallowRF', roll: true },
+                  { field: 'RF', to: 'shallowRF' },
+                  { run: 'YOU', to: 'half23' },
+                  { run: 'B', to: { x: 118, y: 128 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'home', label: 'All the way home to score' },
+              { at: 'b3', label: 'Stop at third' },
+              { at: 'b2', label: 'Go back to second' },
+            ],
+          },
         ],
       },
       {
@@ -1809,6 +2884,19 @@ export const IQ_UNITS = [
             sit: { outs: 1, runners: [3], you: 'runner3' },
             prompt: 'One out, fly ball to center. You\'re leading off third. What\'s your move?',
             choices: ['Get straight back to the bag and tag', 'Go halfway and wait', 'Run home right away', 'Freeze where you are'],
+          },
+          {
+            sit: { outs: 1, runners: [3], you: 'runner3' },
+            prompt: 'One out, you\'re leading off third. Fly ball to center field. Drag your runner to where you go while it\'s in the air.',
+            ask: {
+              drag: 'YOU',
+              setup: [[{ run: 'YOU', to: { x: 58, y: 117 } }], [{ ball: 'B', to: 'CF', fly: true }]],
+            },
+            targets: [
+              { at: 'b3', label: 'Straight back to third to tag up' },
+              { at: 'half3H', label: 'Halfway home and wait' },
+              { at: 'home', label: 'Run home right away' },
+            ],
           },
         ],
       },
@@ -1878,6 +2966,35 @@ export const IQ_UNITS = [
             prompt: 'Where should a base runner\'s eyes be as the pitch reaches the plate?',
             choices: ['On the ball as it gets to the catcher', 'On the pitcher', 'On the dugout', 'On the next base'],
           },
+          {
+            sit: { balls: 1, strikes: 1, outs: 1, runners: [1], you: 'runner1' },
+            prompt: 'You\'re on first. The pitch bounces in the dirt and gets way past the catcher to the backstop. Drag your runner to where you go.',
+            ask: { drag: 'YOU', setup: [[{ run: 'YOU', to: 'lead1' }, { ball: 'P', to: 'backstop' }]] },
+            targets: [
+              { at: 'b2', label: 'Go to second' },
+              { at: 'b1', label: 'Back to first' },
+              { at: 'half12', label: 'Halfway to second and wait' },
+            ],
+          },
+          {
+            sit: { balls: 2, strikes: 1, outs: 0, runners: [3], you: 'runner3' },
+            prompt: 'You\'re on third. The pitch is in the dirt, but the catcher blocks it and it stops right in front of him. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { run: 'YOU', to: { x: 58, y: 117 } },
+                  { ball: 'P', to: { x: 100, y: 156 } },
+                  { field: 'C', to: { x: 100, y: 157 } },
+                ],
+              ],
+            },
+            targets: [
+              { at: 'b3', label: 'Back to third' },
+              { at: 'home', label: 'Run home' },
+              { at: 'half3H', label: 'Halfway home' },
+            ],
+          },
         ],
       },
       {
@@ -1899,6 +3016,22 @@ export const IQ_UNITS = [
             sit: { outs: 0, runners: [1, 3], you: 'runner1' },
             prompt: 'Why do pitchers use fake-to-third, throw-to-first?',
             choices: ['To catch the runner on first relaxing or leaning', 'To get a balk', 'To waste time', 'It doesn\'t work'],
+          },
+          {
+            sit: { outs: 1, runners: [1, 3], you: 'runner1' },
+            prompt: 'Runners on first and third. You\'re on first. The pitcher spins and fakes a throw to third. Drag your runner to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [{ run: 'YOU', to: 'lead1' }, { run: 'R3', to: { x: 58, y: 117 } }],
+                [{ field: 'P', to: { x: 94, y: 104 } }, { say: 'Fake to third!', who: 'P' }],
+              ],
+            },
+            targets: [
+              { at: 'b1', label: 'Back to first, ready to dive' },
+              { at: 'b2', label: 'Take off for second' },
+              { at: 'half12', label: 'Break halfway to second' },
+            ],
           },
         ],
       },
@@ -1953,6 +3086,40 @@ export const IQ_UNITS = [
             prompt: 'Your hit gets wedged in the outfield fence and the fielder can\'t pull it out. Usually what\'s the call?',
             choices: ['Two bases', 'Home run', 'Single', 'Do-over'],
           },
+          {
+            sit: { outs: 0, runners: [], you: 'batter' },
+            prompt: 'You hit one into the gap, and the left fielder throws his glove at it and knocks it down. Drag Skip to the base you\'re awarded.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'gapLC', fly: true },
+                  { field: 'LF', to: 'gapLC' },
+                  { run: 'YOU', to: 1 },
+                ],
+                { say: 'He threw his glove at it!', who: 'LF' },
+              ],
+            },
+            targets: [
+              { at: 'b3', label: 'Third base. A thrown glove is three bases' },
+              { at: 'b1', label: 'Stay at first' },
+              { at: 'b2', label: 'Second base' },
+              { at: 'home', label: 'All the way home' },
+            ],
+          },
+          {
+            sit: { outs: 1, runners: [2], you: 'runner2' },
+            prompt: 'You\'re on second. The pitch bounces and gets stuck in the umpire\'s mask. Drag Skip to the base you\'re awarded.',
+            ask: {
+              drag: 'YOU',
+              setup: [{ ball: 'P', to: { x: 100, y: 167 } }, { say: 'Stuck in the ump\'s mask!' }],
+            },
+            targets: [
+              { at: 'b3', label: 'Third base. Runners get one base' },
+              { at: 'b2', label: 'Stay on second' },
+              { at: 'home', label: 'Score' },
+            ],
+          },
         ],
       },
       {
@@ -1995,6 +3162,28 @@ export const IQ_UNITS = [
             prompt: 'A "4-3" groundout means…',
             choices: ['Second baseman fielded it and threw to first', 'Shortstop threw to first', 'First baseman threw to second', 'Third baseman to first'],
           },
+          {
+            sit: { outs: 0, runners: [1], you: 'batter' },
+            prompt: 'The scorebook says the double play went 6-4-3. Tap the player who fielded the ground ball.',
+            ask: { tap: true },
+            targets: [
+              { at: 'SS', label: 'The shortstop, number 6' },
+              { at: '3B', label: 'The third baseman' },
+              { at: '2B', label: 'The second baseman' },
+              { at: 'P', label: 'The pitcher' },
+            ],
+          },
+          {
+            sit: { outs: 1, runners: [], you: 'batter' },
+            prompt: 'The scorer writes down a fly out to number 8. Tap the player who caught it.',
+            ask: { tap: true },
+            targets: [
+              { at: 'CF', label: 'The center fielder, number 8' },
+              { at: 'LF', label: 'The left fielder' },
+              { at: 'RF', label: 'The right fielder' },
+              { at: 'SS', label: 'The shortstop' },
+            ],
+          },
         ],
       },
       {
@@ -2017,6 +3206,26 @@ export const IQ_UNITS = [
           {
             prompt: 'True or false: If a runner misses a base, the umpire calls him out right away without anyone asking.',
             tf: false,
+          },
+          {
+            sit: { outs: 1, runners: [3], you: '3B' },
+            prompt: 'You\'re at third. Fly ball to left, and the runner on third left before the catch and scored. The left fielder throws you the ball. Drag Skip to where you go.',
+            ask: {
+              drag: 'YOU',
+              setup: [
+                [
+                  { ball: 'B', to: 'shallowLF', fly: true },
+                  { field: 'LF', to: 'shallowLF' },
+                  { run: 'R3', to: 'half3H', ms: 500 },
+                ],
+                [{ run: 'R3', to: 'home' }, { ball: 'LF', to: 'YOU' }],
+              ],
+            },
+            targets: [
+              { at: 'b3', label: 'Step on third and appeal to the umpire' },
+              { at: 'P', label: 'Toss the ball back to the pitcher' },
+              { at: 'home', label: 'Chase the runner to home plate' },
+            ],
           },
         ],
       },

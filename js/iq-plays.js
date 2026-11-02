@@ -1246,4 +1246,411 @@ export const PLAYS = {
     [{ ball: 'B', to: 'shallowLF' }, { field: 'LF', to: 'shallowLF' }, { run: 'R3', to: 'home', ms: 900 }, { run: 'B', to: 1 }, { say: 'Sprint all the way home!', who: 'R3' }],
     [{ safe: 'R3' }],
   ],
+
+  // ---------- field questions (cards answered on the field) ----------
+  'u4-cutoff:3': [
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'RF', to: 'shallowRF' }, { run: 'R2', to: 3 }],
+    [{ field: 'YOU', to: { x: 114, y: 118 } }, { say: 'Line up: right field to home!', who: 'YOU' }],
+    [{ ball: 'RF', to: 'YOU' }, { run: 'R2', to: 'home', ms: 900 }],
+    [{ ball: 'YOU', to: 'C' }, { say: 'Catcher calls it: cut or let it go.', who: 'C' }],
+  ],
+  'u3-backup:3': [
+    [{ ball: 'B', to: 'SS', roll: true }, { run: 'B', to: { x: 118, y: 128 } }],
+    [{ field: 'YOU', to: { x: 168, y: 118 } }, { say: 'Back up first!', who: 'YOU' }],
+    [{ ball: 'SS', to: '1B' }, { run: 'B', to: 1 }],
+    [{ out: 'B' }, { say: 'If it gets past first, you\'re there.', who: 'YOU' }],
+  ],
+  'u7-fly-ball:3': [
+    [{ ball: 'B', to: 'shallowCF', fly: true }, { field: 'CF', to: 'shallowCF' }, { run: 'YOU', to: 'half12' }],
+    [{ say: 'Halfway! Watch the catch.', who: 'YOU' }],
+    [{ run: 'YOU', to: 'back' }, { say: 'Caught? Easy trip back.', who: 'YOU' }],
+  ],
+  'u5-steal-cover:3': [
+    [{ run: 'R1', to: 'lead1' }, { say: 'Lefty up: shortstop covers.', who: 'SS' }],
+    [{ ball: 'P', to: 'C' }, { run: 'R1', to: 2, ms: 900 }, { field: 'SS', to: 'b2' }],
+    [{ ball: 'C', to: 'SS' }],
+    [{ out: 'R1' }],
+  ],
+
+  // ---------- field questions: FA.mjs ----------
+  'u1-ondeck-rule:3': [
+    { say: 'No fenced-in area? Not out here!', who: 'YOU' },
+    { run: 'YOU', to: 'dugout1', ms: 900 },
+    { say: 'Dugout, helmet on, ready to go.', who: 'YOU' },
+  ],
+  'u1-traffic-cop:3': [
+    [{ ball: 'B', to: 'shallowLF', roll: true }, { field: 'LF', to: 'shallowLF' }, { run: 'B', to: 1 }, { run: 'R2', to: 3 }],
+    [{ run: 'YOU', to: { x: 114, y: 168 } }, { run: 'R2', to: 'half3H' }],
+    [{ ball: 'LF', to: 'home' }, { run: 'R2', to: 'home', ms: 800 }, { say: 'Close play: hands down, slide!', who: 'YOU' }],
+    { safe: 'R2' },
+  ],
+  'u1-situation:3': [
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'YOU', to: 'shallowRF' }, { run: 'R2', to: 3 }, { run: 'B', to: 1 }],
+    [{ say: 'Two outs: he ran on contact!', who: 'YOU' }, { run: 'R2', to: 'half3H' }],
+    [{ ball: 'YOU', to: 'home' }, { run: 'R2', to: 'home' }],
+    { say: 'Throw home to stop the run!', who: 'YOU' },
+  ],
+  'u2-dropped-k:3': [
+    { ball: 'P', to: ['home', 'backstop'] },
+    [{ field: 'C', to: 'backstop' }, { say: 'Two outs: run!', who: 'YOU' }],
+    [{ run: 'YOU', to: 1, ms: 550 }, { run: 'R1', to: 2 }, { run: 'R2', to: 3 }],
+    { safe: 'YOU' },
+  ],
+  'u2-dropped-k:4': [
+    { ball: 'P', to: ['home', 'backstop'] },
+    [{ field: 'C', to: 'backstop' }, { say: 'First is taken, no outs: I\'m out', who: 'YOU' }],
+    [{ out: 'YOU' }, { run: 'YOU', to: 'dugout1', ms: 900 }],
+  ],
+  'u2-sac-bunt:3': [
+    [{ ball: 'P', to: 'B' }, { run: 'R1', to: 'lead1' }],
+    [{ ball: 'B', to: 'bunt1', roll: true }, { field: '1B', to: 'bunt1' }, { field: '2B', to: 'b1' }, { run: 'R1', to: 2 }, { run: 'B', to: { x: 124, y: 126 } }],
+    [{ ball: '1B', to: 'b1' }, { run: 'B', to: 1 }],
+    [{ out: 'B' }, { safe: 'R1' }, { say: 'On the ground. Job done!', who: 'B' }],
+  ],
+  'u2-hit-and-run:3': [
+    [{ run: 'R1', to: 'half12' }, { field: '2B', to: 'b2' }, { ball: 'P', to: 'B' }],
+    [{ ball: 'B', to: 'hole12', roll: true }, { run: 'R1', to: 2 }, { run: 'B', to: 1 }, { say: 'Right where he left!', who: 'B' }],
+    [{ field: 'RF', to: 'shallowRF' }, { ball: 'hole12', to: 'shallowRF' }, { run: 'R1', to: 3 }],
+    { safe: 'R1' },
+  ],
+  'u9-weird-awards:3': [
+    [{ ball: 'B', to: 'gapLC', fly: true }, { field: 'LF', to: 'gapLC' }, { run: 'YOU', to: 1 }],
+    { say: 'He threw his glove at it!', who: 'LF' },
+    [{ say: 'Thrown glove: 3 bases!' }, { run: 'YOU', to: 3 }],
+    { safe: 'YOU' },
+  ],
+  'u9-weird-awards:4': [
+    { ball: 'P', to: { x: 100, y: 167 } },
+    { say: 'Stuck in the ump\'s mask!' },
+    [{ say: 'One base for runners!', who: 'YOU' }, { run: 'YOU', to: 3 }],
+    { safe: 'YOU' },
+  ],
+  'u9-appeal:3': [
+    [{ ball: 'B', to: 'shallowLF', fly: true }, { field: 'LF', to: 'shallowLF' }, { run: 'R3', to: 'half3H', ms: 500 }],
+    [{ run: 'R3', to: 'home' }, { ball: 'LF', to: 'YOU' }],
+    [{ field: 'YOU', to: 'b3' }, { say: 'He left early! Appeal!', who: 'YOU' }],
+    { out: 'R3' },
+  ],
+  'u9-position-numbers:3': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'SS', roll: true }, { field: '2B', to: 'b2' }, { run: 'R1', to: 'half12' }, { run: 'B', to: { x: 120, y: 128 } }],
+    [{ ball: 'SS', to: '2B' }, { run: 'R1', to: 2 }, { say: '6...', who: 'SS' }],
+    [{ out: 'R1' }, { ball: '2B', to: '1B' }, { say: '4...', who: '2B' }, { run: 'B', to: 1 }],
+    [{ out: 'B' }, { say: '3! Double play.', who: '1B' }],
+  ],
+  'u9-position-numbers:4': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'shallowCF', fly: true }, { field: 'CF', to: 'shallowCF' }, { run: 'B', to: 1 }],
+    [{ out: 'B' }, { say: 'Center field is number 8!', who: 'CF' }],
+  ],
+
+  // ---------- field questions: FB.mjs ----------
+  'u3-cutoff:3': [
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'YOU', to: 'shallowRF' }, { run: 'R2', to: 3 }, { run: 'B', to: 1 }, { field: '1B', to: { x: 120, y: 112 } }],
+    [{ say: 'Low and hard to the cutoff!', who: 'YOU' }, { run: 'R2', to: 'half3H' }],
+    [{ ball: 'YOU', to: ['1B', 'home'] }, { run: 'R2', to: 'home' }],
+    [{ say: 'He can cut it or let it go.', who: '1B' }],
+  ],
+  'u3-throw-ahead:3': [
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'YOU', to: 'shallowRF' }, { run: 'R1', to: 2 }, { run: 'B', to: 1 }, { field: 'SS', to: { x: 88, y: 88 } }, { field: '3B', to: 'b3' }],
+    [{ say: 'Throw ahead of him, to third!', who: 'YOU' }, { run: 'R1', to: 'half23' }],
+    [{ ball: 'YOU', to: ['SS', '3B'] }, { run: 'R1', to: 3 }],
+    [{ say: 'Batter stays at first.' }],
+  ],
+  'u3-nobody-on:3': [
+    [{ ball: 'B', to: 'shallowLF', roll: true }, { field: 'YOU', to: 'shallowLF' }, { run: 'B', to: 1 }, { field: 'SS', to: 'b2' }],
+    [{ run: 'B', to: 'half12' }, { ball: 'YOU', to: 'SS' }, { say: 'Into second base!', who: 'YOU' }],
+    [{ run: 'B', to: 'b1' }, { say: 'Batter stays at first.' }],
+  ],
+  'u3-tag-throw:3': [
+    [{ ball: 'B', to: 'shallowLF', fly: true }, { field: 'YOU', to: 'shallowLF' }, { field: 'C', to: 'home' }],
+    [{ out: 'B' }, { say: "He's tagging!", who: 'R3' }],
+    [{ run: 'R3', to: 'home' }, { ball: 'YOU', to: 'C' }, { say: 'Throw home!', who: 'YOU' }],
+  ],
+  'u3-backup:4': [
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'RF', to: 'shallowRF' }, { run: 'R1', to: 2 }, { run: 'B', to: 1 }, { field: 'SS', to: 'cut' }, { field: '3B', to: 'b3' }],
+    [{ field: 'YOU', to: { x: 38, y: 116 } }, { run: 'R1', to: 3 }, { say: 'Back up third!', who: 'YOU' }],
+    [{ ball: 'RF', to: ['SS', '3B'] }],
+    [{ say: 'If it gets past third, you\'re there.', who: 'YOU' }],
+  ],
+  'u3-priority:3': [
+    [{ ball: 'B', to: 'gapRC', fly: true, ms: 1600 }, { field: 'CF', to: 'gapRC', ms: 1500 }, { field: 'YOU', to: { x: 150, y: 30 }, ms: 1200 }, { say: 'I got it! I got it!', who: 'CF' }],
+    [{ out: 'B' }, { say: 'Center has priority!', who: 'YOU' }],
+  ],
+  'u3-priority:4': [
+    [{ ball: 'B', to: 'shallowLF', fly: true, ms: 1500 }, { field: 'YOU', to: 'shallowLF', ms: 1300 }, { field: 'SS', to: { x: 64, y: 70 }, ms: 1200 }, { say: 'I got it! I got it!', who: 'YOU' }],
+    [{ out: 'B' }, { say: 'Coming in is easier!', who: 'YOU' }],
+  ],
+  'u3-batter-side:3': [
+    [{ say: 'Righty up. Be ready in left!', who: 'YOU' }],
+    [{ ball: 'P', to: 'C' }],
+    [{ ball: 'B', to: 'shallowLF', fly: true }, { field: 'LF', to: 'shallowLF' }],
+    [{ out: 'B' }],
+  ],
+  'u3-meaningless-run:3': [
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'YOU', to: 'shallowRF' }, { run: 'R3', to: 'home' }, { run: 'B', to: 1 }, { field: '2B', to: 'b2' }],
+    [{ safe: 'R3' }, { say: 'Too late for home!', who: 'YOU' }],
+    [{ ball: 'YOU', to: '2B' }, { say: 'To second! Hold the batter.', who: 'YOU' }],
+  ],
+
+  // ---------- field questions: FC.mjs ----------
+  // ---------- u4 ----------
+  'u4-get-to-bag:3': [
+    [{ ball: 'B', to: 'SS', roll: true }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ field: 'YOU', to: 'b1', ms: 500 }, { say: 'Heels on the bag, give a target!', who: 'YOU' }],
+    [{ ball: 'SS', to: 'YOU' }, { run: 'B', to: 1, ms: 700 }],
+    [{ out: 'B' }],
+  ],
+  'u4-bad-throw:3': [
+    [{ ball: 'B', to: '3B', roll: true }, { field: 'YOU', to: 'b1' }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ ball: '3B', to: { x: 130, y: 134 } }, { field: 'YOU', to: { x: 130, y: 132 }, ms: 400 }, { run: 'B', to: 1, ms: 700 }],
+    [{ say: 'Off the bag, stop it!', who: 'YOU' }, { safe: 'B' }],
+    [{ say: 'One base, not two or three.', who: 'YOU' }],
+  ],
+  'u4-pitcher-cover:3': [
+    [{ ball: 'B', to: 'hole12', roll: true }, { field: 'YOU', to: 'hole12' }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ field: 'P', to: { x: 134, y: 110 }, ms: 500 }, { say: 'I got first!', who: 'P' }],
+    [{ ball: 'YOU', to: 'b1', ms: 600 }, { field: 'P', to: 'b1', ms: 600 }, { run: 'B', to: 1, ms: 800 }],
+    [{ out: 'B' }],
+  ],
+  'u4-hold-runner:3': [
+    [{ run: 'R1', to: 'lead1' }, { field: 'YOU', to: { x: 143, y: 100 }, ms: 500 }],
+    [{ say: 'Only first is taken: hold him!', who: 'YOU' }],
+    [{ ball: 'P', to: 'C' }, { field: 'YOU', to: { x: 136, y: 91 }, ms: 500 }],
+    [{ say: 'Pitch is gone: shuffle off!', who: 'YOU' }],
+  ],
+  'u4-play-behind:3': [
+    [{ run: 'R1', to: 'lead1' }, { run: 'R2', to: 'lead2' }],
+    [{ field: 'YOU', to: { x: 142, y: 76 }, ms: 500 }, { say: "Second's taken: play back!", who: 'YOU' }],
+    [{ ball: 'P', to: 'C' }],
+  ],
+  'u4-cutoff:4': [
+    [{ ball: 'B', to: 'shallowCF', roll: true }, { field: 'CF', to: 'shallowCF' }, { run: 'R2', to: 3 }],
+    [{ field: 'YOU', to: { x: 100, y: 118 } }, { field: 'P', to: 'backstop' }, { say: 'Line up: center to home!', who: 'YOU' }],
+    [{ ball: 'CF', to: 'YOU' }, { run: 'R2', to: 'home', ms: 900 }],
+    [{ ball: 'YOU', to: 'C' }, { say: 'Catcher calls it: cut or let it go.', who: 'C' }],
+  ],
+  'u4-bunt:3': [
+    [{ run: 'R1', to: 'lead1' }, { ball: 'P', to: 'home' }],
+    [{ field: 'YOU', to: { x: 132, y: 112 }, ms: 400 }, { say: 'Bunt! Charge!', who: 'YOU' }],
+    [{ ball: 'home', to: 'bunt1', roll: true }, { field: 'YOU', to: 'bunt1', ms: 400 }, { field: '2B', to: 'b1', ms: 650 }, { run: 'R1', to: 'half12', ms: 650 }, { run: 'B', to: { x: 112, y: 128 }, ms: 650 }],
+    [{ ball: 'YOU', to: '2B' }, { run: 'B', to: 1, ms: 600 }, { run: 'R1', to: 2, ms: 600 }],
+    [{ out: 'B' }],
+  ],
+  'u4-bunt:4': [
+    [{ ball: 'P', to: 'home' }],
+    [{ ball: 'home', to: 'bunt1', roll: true }, { field: 'YOU', to: 'bunt1' }, { run: 'R1', to: 'half12' }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ field: '2B', to: 'b1', ms: 500 }, { say: 'I got first!', who: '2B' }],
+    [{ ball: 'YOU', to: '2B' }, { run: 'B', to: 1, ms: 600 }, { run: 'R1', to: 2, ms: 600 }],
+    [{ out: 'B' }],
+  ],
+
+  // ---------- u5 ----------
+  'u5-steal-cover:4': [
+    [{ ball: 'P', to: 'C' }, { run: 'R1', to: 'half12' }],
+    [{ field: 'YOU', to: 'b2', ms: 500 }, { say: "Righty up: I've got the bag!", who: 'YOU' }],
+    [{ ball: 'C', to: 'YOU' }, { run: 'R1', to: 2, ms: 600 }],
+    [{ out: 'R1' }],
+  ],
+  'u5-double-play:3': [
+    [{ ball: 'B', to: 'YOU', roll: true }, { field: '2B', to: 'b2' }, { field: '1B', to: 'b1' }, { run: 'R1', to: 'half12' }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ say: 'Lead runner first!', who: 'YOU' }],
+    [{ ball: 'YOU', to: ['2B', '1B'] }, { run: 'R1', to: 2, ms: 500 }, { run: 'B', to: 1, ms: 900 }],
+    [{ out: 'R1' }, { out: 'B' }],
+  ],
+  'u5-double-play:4': [
+    [{ ball: 'B', to: 'SS', roll: true }, { field: '1B', to: 'b1' }, { run: 'R1', to: 'half12' }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ field: 'YOU', to: 'b2', ms: 500 }, { say: 'Get to the bag!', who: 'YOU' }],
+    [{ ball: 'SS', to: ['YOU', '1B'] }, { run: 'R1', to: 2, ms: 500 }, { run: 'B', to: 1, ms: 900 }],
+    [{ out: 'R1' }, { out: 'B' }],
+  ],
+  'u5-relay:3': [
+    [{ ball: 'B', to: 'gapLC', fly: true }, { field: 'CF', to: 'gapLC' }, { run: 'B', to: 1 }],
+    [{ field: 'YOU', to: { x: 60, y: 56 } }, { field: '3B', to: 'b3' }, { say: 'Here! Here! Hands up!', who: 'YOU' }, { run: 'B', to: 2, ms: 1200 }],
+    [{ ball: 'CF', to: ['YOU', '3B'] }],
+    [{ say: 'Relay holds him at second!', who: 'YOU' }],
+  ],
+  'u5-infield-in:3': [
+    [{ field: 'YOU', to: { x: 118, y: 90 } }, { field: 'SS', to: { x: 82, y: 90 } }],
+    [{ ball: 'B', to: 'YOU', roll: true }, { run: 'R3', to: { x: 68, y: 118 } }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ ball: 'YOU', to: 'C' }, { run: 'R3', to: 'home', ms: 700 }, { run: 'B', to: 1, ms: 700 }],
+    [{ out: 'R3' }, { say: "Throw home: that's why we're in!", who: 'YOU' }],
+  ],
+  'u5-infield-in:4': [
+    [{ ball: 'B', to: 'YOU', roll: true }, { field: '1B', to: 'b1' }, { run: 'R3', to: { x: 68, y: 118 } }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ ball: 'YOU', to: '1B' }, { run: 'R3', to: 'home', ms: 700 }, { run: 'B', to: 1, ms: 700 }, { say: 'Up six: take the sure out!', who: 'YOU' }],
+    [{ out: 'B' }],
+  ],
+  'u5-two-outs:3': [
+    [{ ball: 'B', to: { x: 64, y: 98 }, roll: true }, { field: 'YOU', to: { x: 64, y: 98 } }, { field: '3B', to: { x: 70, y: 118 } }, { run: 'R3', to: { x: 72, y: 122 } }, { run: 'R2', to: 'half23' }, { run: 'R1', to: 'half12' }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ field: 'YOU', to: 'b3', ms: 300 }, { say: 'Closest base: step on it!', who: 'YOU' }],
+    [{ out: 'R2' }, { say: 'Two outs: any out ends it.', who: 'YOU' }],
+  ],
+  'u5-popup-priority:3': [
+    [{ ball: 'B', to: { x: 132, y: 80 }, fly: true, ms: 1200 }, { field: 'YOU', to: { x: 128, y: 76 } }, { field: '1B', to: { x: 138, y: 88 } }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ field: 'YOU', to: { x: 132, y: 80 }, ms: 300 }, { field: '1B', to: { x: 142, y: 94 }, ms: 400 }, { say: "Mine! I've got it!", who: 'YOU' }],
+    [{ out: 'B' }, { say: 'Middle guy has priority!', who: 'YOU' }],
+  ],
+  'u5-popup-priority:4': [
+    [{ ball: 'B', to: 'shallowRF', fly: true, ms: 1400 }, { field: 'RF', to: { x: 152, y: 54 } }, { field: 'YOU', to: { x: 136, y: 66 } }, { run: 'R1', to: 'lead1' }, { run: 'B', to: { x: 112, y: 128 } }],
+    [{ field: 'RF', to: 'shallowRF', ms: 300 }, { say: 'I got it!', who: 'RF' }, { field: 'YOU', to: { x: 126, y: 76 }, ms: 400 }],
+    [{ out: 'B' }, { say: 'Peel off: he has it!', who: 'YOU' }],
+    [{ run: 'R1', to: 'back', ms: 500 }],
+  ],
+
+  // ---------- field questions: FD.mjs ----------
+  'u6-pitcher-cover-first:3': [
+    [{ ball: 'B', to: 'hole12', roll: true }, { field: '1B', to: 'hole12' }, { field: 'YOU', to: { x: 134, y: 114 } }, { say: 'Break for first!', who: 'YOU' }],
+    [{ field: 'YOU', to: 'b1', ms: 500 }, { run: 'B', to: 1, ms: 1200 }, { ball: '1B', to: { x: 140, y: 108 }, ms: 500 }],
+    [{ out: 'B' }],
+  ],
+  'u6-pitcher-backup:3': [
+    [{ ball: 'B', to: 'shallowCF', roll: true }, { field: 'CF', to: 'shallowCF' }, { run: 'R2', to: 3 }],
+    [{ field: 'YOU', to: 'backstop' }, { run: 'R2', to: 'home' }, { ball: 'CF', to: 'C' }, { say: 'Back up home, way back!', who: 'YOU' }],
+    [{ out: 'R2' }],
+  ],
+  'u6-pitcher-backup:4': [
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'RF', to: 'shallowRF' }, { run: 'R1', to: 2 }, { run: 'B', to: 1 }],
+    [{ field: 'YOU', to: 'foul3' }, { run: 'R1', to: 3 }, { field: '3B', to: 'b3' }, { say: 'Back up third!', who: 'YOU' }],
+    [{ ball: 'RF', to: '3B' }],
+    [{ safe: 'R1' }],
+  ],
+  'u6-catcher-dropped-k:3': [
+    [{ ball: 'P', to: { x: 108, y: 166 } }],
+    [{ field: 'YOU', to: { x: 108, y: 164 } }, { run: 'B', to: { x: 118, y: 132 } }, { field: '1B', to: 'b1' }, { say: 'Grab it and throw to first!', who: 'YOU' }],
+    [{ ball: 'YOU', to: '1B' }, { run: 'B', to: 1 }],
+    [{ out: 'B' }],
+  ],
+  'u6-catcher-backup-first:3': [
+    [{ ball: 'B', to: 'holeSS', roll: true }, { field: 'SS', to: 'holeSS' }, { run: 'B', to: { x: 112, y: 138 } }, { field: 'YOU', to: { x: 128, y: 140 } }],
+    [{ field: 'YOU', to: { x: 168, y: 126 } }, { ball: 'SS', to: '1B' }, { run: 'B', to: 1 }, { say: 'Back up first!', who: 'YOU' }],
+    [{ out: 'B' }],
+  ],
+  'u6-catcher-backup-first:4': [
+    [{ ball: 'B', to: 'holeSS', roll: true }, { field: 'SS', to: 'holeSS' }, { run: 'B', to: { x: 112, y: 138 } }, { run: 'R2', to: 'lead2' }],
+    [{ ball: 'SS', to: '1B' }, { run: 'B', to: 1 }, { run: 'R2', to: 'half23' }, { say: 'Runner on 2nd. I stay home!', who: 'YOU' }],
+    [{ out: 'B' }, { run: 'R2', to: 'back' }],
+  ],
+  'u6-third-bunt:3': [
+    [{ ball: 'B', to: 'bunt3', roll: true }, { field: 'YOU', to: 'bunt3' }, { field: 'SS', to: 'b2' }, { field: '2B', to: 'b1' }, { run: 'R1', to: 'half12' }, { run: 'B', to: { x: 112, y: 138 } }],
+    [{ say: 'Two! Get the lead runner!', who: 'C' }, { ball: 'YOU', to: 'SS' }, { run: 'R1', to: 2 }],
+    [{ out: 'R1' }],
+  ],
+  'u8-what-if:3': [
+    [{ ball: 'P', to: 'C' }, { run: 'YOU', to: 'lead2' }],
+    [{ ball: 'C', to: 'shallowCF', fly: true }, { field: 'CF', to: { x: 100, y: 34 } }, { say: 'Over his head!', who: 'YOU' }],
+    [{ run: 'YOU', to: 3 }, { field: 'CF', to: 'shallowCF' }],
+    [{ safe: 'YOU' }, { say: 'I was ready for it!', who: 'YOU' }],
+  ],
+  'u8-lead-second:3': [
+    [{ run: 'YOU', to: 'lead2' }, { ball: 'P', to: 'C' }],
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'RF', to: 'shallowRF' }, { run: 'YOU', to: 'home', ms: 1600 }, { run: 'B', to: 1 }, { say: 'Two outs: go on contact!', who: 'YOU' }],
+    [{ ball: 'RF', to: 'C' }],
+    [{ safe: 'YOU' }],
+  ],
+  'u8-lead-third:3': [
+    [{ run: 'YOU', to: { x: 58, y: 117 } }, { ball: 'B', to: 'CF', fly: true }],
+    [{ run: 'YOU', to: 'back', ms: 500 }, { say: 'Straight back and tag!', who: 'YOU' }],
+    [{ run: 'YOU', to: 'home', ms: 1100 }, { ball: 'CF', to: 'C' }],
+    [{ safe: 'YOU' }],
+  ],
+  'u7-wild-pitch:3': [
+    [{ run: 'YOU', to: 'lead1' }, { ball: 'P', to: 'backstop' }],
+    [{ run: 'YOU', to: 2, ms: 1200 }, { field: 'C', to: 'backstop' }, { say: 'Past him. GO!', who: 'YOU' }],
+    [{ safe: 'YOU' }],
+  ],
+  'u7-wild-pitch:4': [
+    [{ run: 'YOU', to: { x: 58, y: 117 } }, { ball: 'P', to: { x: 100, y: 156 } }, { field: 'C', to: { x: 100, y: 157 } }],
+    [{ say: 'Blocked. Stay put!', who: 'YOU' }],
+    [{ run: 'YOU', to: 'back' }],
+  ],
+  'u7-pickoff-read:3': [
+    [{ run: 'YOU', to: 'lead1' }, { run: 'R3', to: { x: 58, y: 117 } }],
+    [{ field: 'P', to: { x: 94, y: 104 } }, { say: 'Fake to third!', who: 'P' }],
+    [{ run: 'YOU', to: 'back', ms: 450 }, { ball: 'P', to: '1B', ms: 450 }],
+    [{ safe: 'YOU' }, { say: 'Ready for it. Back in time!', who: 'YOU' }],
+  ],
+
+  // ---------- field questions: FE.mjs ----------
+  'u7-run-through-first:3': [
+    [{ ball: 'B', to: 'SS', roll: true }, { run: 'B', to: { x: 128, y: 122 } }],
+    [{ run: 'B', to: 1, ms: 700 }, { ball: 'SS', to: '1B', ms: 800 }],
+    [{ run: 'B', to: PAST1 }, { safe: 'B' }, { say: 'Run THROUGH the bag!', who: 'B' }],
+  ],
+  'u7-round-first:3': [
+    [{ ball: 'B', to: 'shallowLF' }, { field: 'LF', to: 'shallowLF' }, { run: 'B', to: BANANA }],
+    [{ run: 'B', to: 1 }],
+    [{ run: 'B', to: TURN1 }, { say: 'Hard turn toward second!', who: 'B' }],
+    [{ ball: 'LF', to: 'SS' }, { run: 'B', to: 1 }, { say: 'Clean throw in? Back to first.', who: 'B' }],
+  ],
+  'u7-two-outs:3': [
+    [{ ball: 'B', to: 'shallowRF', fly: true, ms: 1400 }, { field: 'RF', to: { x: 154, y: 52 }, ms: 1400 }, { run: 'YOU', to: 3, ms: 1400 }, { say: 'Two outs: run on contact!', who: 'YOU' }],
+    [{ run: 'YOU', to: 'home' }, { say: 'It dropped: you score!', who: 'YOU' }],
+    [{ safe: 'YOU' }],
+  ],
+  'u7-fly-ball:4': [
+    [{ run: 'YOU', to: 'lead3' }, { ball: 'P', to: 'C' }],
+    [{ ball: 'B', to: 'deepLF', fly: true, ms: 1500 }, { field: 'LF', to: 'deepLF', ms: 1500 }, { run: 'YOU', to: 'back' }, { say: 'Deep fly: tag up!', who: 'YOU' }],
+    [{ run: 'YOU', to: 'home', ms: 1100 }, { ball: 'LF', to: ['SS', 'home'], ms: 1300 }],
+    [{ safe: 'YOU' }],
+  ],
+  'u7-line-drive:3': [
+    [{ run: 'YOU', to: 'lead1' }, { ball: 'P', to: 'C' }],
+    [{ ball: 'B', to: '2B' }, { say: 'Freeze on a liner!', who: 'YOU' }],
+    [{ run: 'YOU', to: 'back' }, { field: '1B', to: 'b1' }, { ball: '2B', to: 'b1' }],
+    [{ safe: 'YOU' }],
+  ],
+  'u7-ball-in-front:3': [
+    [{ run: 'YOU', to: 'lead2' }],
+    [{ ball: 'B', to: '3B', roll: true }, { say: 'In front of you: hold!', who: 'YOU' }],
+    [{ run: 'YOU', to: 'back' }, { run: 'B', to: 1, ms: 1000 }, { ball: '3B', to: '1B', ms: 1000 }],
+    [{ out: 'B' }, { safe: 'YOU' }],
+  ],
+  'u7-ball-in-front:4': [
+    [{ run: 'YOU', to: 'lead2' }],
+    [{ ball: 'B', to: 'hole12', roll: true }, { field: '2B', to: 'hole12' }, { say: 'Behind you: go to third!', who: 'YOU' }],
+    [{ run: 'YOU', to: 3 }, { run: 'B', to: 1, ms: 1000 }, { ball: '2B', to: '1B', ms: 900 }],
+    [{ safe: 'YOU' }, { out: 'B' }],
+  ],
+  'u7-avoid-contact:3': [
+    [{ run: 'YOU', to: 'half3H' }, { field: 'C', to: { x: 96, y: 140 } }, { ball: 'SS', to: 'C' }],
+    [{ say: 'Slide or go around!', who: 'YOU' }],
+    [{ run: 'YOU', to: { x: 76, y: 156 } }],
+    [{ run: 'YOU', to: 'home' }, { say: 'Never run him over.', who: 'YOU' }],
+  ],
+  'u7-turn-back-foul:3': [
+    [{ ball: 'B', to: 'SS', roll: true }],
+    [{ run: 'B', to: 1, ms: 900 }, { ball: 'SS', to: '1B', ms: 1000 }],
+    [{ run: 'B', to: PAST1 }, { safe: 'B' }],
+    [{ run: 'B', to: FOUL1 }, { say: 'Turn to the foul side!', who: 'B' }],
+    [{ run: 'B', to: 1 }],
+  ],
+  'u7-turn-back-foul:4': [
+    [{ ball: 'B', to: 'SS', roll: true }],
+    [{ run: 'B', to: 1, ms: 900 }, { ball: 'SS', to: 'foul1', ms: 900 }],
+    [{ run: 'B', to: PAST1 }, { say: 'Overthrow: go!', who: 'B' }],
+    [{ run: 'B', to: 2 }, { field: '1B', to: 'foul1' }],
+    [{ safe: 'B' }],
+  ],
+  'u7-tag-rules:3': [
+    [{ ball: 'B', to: 'foul1', fly: true, ms: 1400 }, { field: '1B', to: 'foul1', ms: 1400 }, { say: 'Caught foul? Tag up!', who: 'YOU' }],
+    [{ run: 'YOU', to: 2, ms: 1000 }, { field: 'SS', to: 'b2' }, { ball: '1B', to: 'b2', ms: 1200 }],
+    [{ safe: 'YOU' }],
+  ],
+  'u7-ifr-runner:3': [
+    [{ ball: 'B', to: 'SS', fly: true, ms: 1400 }, { run: 'R1', to: 'lead1' }, { run: 'YOU', to: 'lead2' }],
+    [{ say: 'Infield fly! Batter is out.' }, { out: 'B' }],
+    [{ run: 'R1', to: 'back' }, { run: 'YOU', to: 'back' }, { say: 'No force: stay put!', who: 'YOU' }],
+  ],
+  'u7-dp-slide:3': [
+    [{ ball: 'B', to: 'SS', roll: true }, { run: 'YOU', to: 'half12' }, { field: '2B', to: 'b2' }, { run: 'B', to: { x: 118, y: 132 } }],
+    [{ ball: 'SS', to: '2B' }, { out: 'YOU' }],
+    [{ run: 'YOU', to: { x: 138, y: 56 } }, { ball: '2B', to: '1B' }, { run: 'B', to: 1 }, { say: 'Get out of the way!', who: 'YOU' }],
+  ],
+  'u7-no-free-dp:3': [
+    [{ run: 'YOU', to: 'half12' }, { ball: 'B', to: { x: 112, y: 72 }, roll: true }, { field: '2B', to: { x: 112, y: 72 } }, { run: 'B', to: { x: 118, y: 132 } }],
+    [{ say: 'Stop! Make him chase you!', who: 'YOU' }],
+    [{ field: '2B', to: 'R1', ms: 900 }, { run: 'B', to: 1, ms: 900 }],
+    [{ out: 'YOU' }, { safe: 'B' }],
+  ],
 };

@@ -23,6 +23,12 @@
 //   { wait: 400 }
 // Actor ids: B (batter), OD (on deck), R1 R2 R3 (runners by starting base), P C 1B 2B SS 3B
 // LF CF RF, or YOU (whoever the card says you are).
+//
+// Field questions (cards with `ask`, see iq-content.js) are answered right here: he drags Skip,
+// a runner or the ball to a spot, or taps a player. Each target gets a drop zone; dropping
+// near one picks it. Once he checks, his pick is marked right or wrong, Skip slides to the
+// right spot if he missed, and then the play runs. `ask.setup` (play steps) runs first to show
+// the moment of the decision, e.g. the ball already in right field with the runner rounding third.
 
 export const SPOTS = {
   home: [100, 150], b1: [145, 105], b2: [100, 60], b3: [55, 105], mound: [100, 105],
@@ -71,7 +77,7 @@ function castFor(sit) {
   return cast.map((a) => ({ ...a, you: a.id === you }));
 }
 
-export function fieldHtml(sit, key) {
+export function fieldHtml(sit, key, asking = false) {
   const cast = castFor(sit);
   const runners = sit.runners || [];
   const base = (id, n) => {
@@ -87,7 +93,7 @@ export function fieldHtml(sit, key) {
     return `<div class="${cls}" data-actor="${a.id}" data-x="${x}" data-y="${y}" style="${pct([x, y])}">${inner}</div>`;
   }).join('');
   return `
-    <div class="field-card" data-field-key="${key}">
+    <div class="field-card ${asking ? 'field-card-ask' : ''}" data-field-key="${key}">
       <div class="field-stage">
         <svg class="field-svg" viewBox="0 0 200 172" aria-hidden="true">
           <defs>
@@ -260,6 +266,141 @@ function resetActors(node, sit) {
   node.querySelectorAll('.field-say').forEach((b) => b.remove());
 }
 
+// ---------- field questions ----------
+
+const DROP_RADIUS = 26; // field units: how close a drop has to land to count as that target
+
+function stageXY(stage, e) {
+  const r = stage.getBoundingClientRect();
+  const x = ((e.clientX - r.left) / r.width) * 200;
+  const y = ((e.clientY - r.top) / r.height) * 172;
+  return [Math.min(196, Math.max(4, x)), Math.min(168, Math.max(4, y))];
+}
+
+function nearest(pts, [x, y], radius) {
+  let best = null;
+  let bestD = radius;
+  pts.forEach(([px, py], i) => {
+    const d = Math.hypot(px - x, py - y);
+    if (d <= bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
+function setupAsk(node, sit, ask, targets, onPick) {
+  const stage = node.querySelector('.field-stage');
+  const pts = targets.map((t) => posOf(node, t.at, sit));
+  const state = { pts, zones: [], tapEls: [], el: null, start: null, locked: false, picked: null };
+  live.ask = state;
+  node.classList.add('field-asking');
+
+  if (ask.tap) {
+    targets.forEach((t, i) => {
+      const a = actorEl(node, t.at, sit);
+      if (!a) return;
+      state.tapEls[i] = a;
+      a.classList.add('actor-tappable');
+      a.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!state.locked) onPick(i);
+      });
+    });
+    return;
+  }
+
+  state.zones = pts.map((p, i) => {
+    const z = document.createElement('div');
+    z.className = 'field-zone';
+    z.dataset.zone = i;
+    place(z, p);
+    stage.appendChild(z);
+    return z;
+  });
+
+  let el;
+  if (ask.drag === 'ball') {
+    el = node.querySelector('[data-ball]');
+    el.hidden = false;
+    place(el, posOf(node, ask.from, sit));
+  } else {
+    el = actorEl(node, ask.drag, sit);
+  }
+  if (!el) return;
+  state.el = el;
+  state.start = [Number(el.dataset.x), Number(el.dataset.y)];
+  el.classList.add('field-draggable');
+
+  let dragging = false;
+  el.addEventListener('pointerdown', (e) => {
+    if (state.locked) return;
+    e.preventDefault();
+    dragging = true;
+    el.setPointerCapture(e.pointerId);
+    el.getAnimations().forEach((an) => an.cancel());
+    node.classList.add('field-dragging');
+    el.classList.add('field-dragging-el');
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const xy = stageXY(stage, e);
+    place(el, xy);
+    const hot = nearest(pts, xy, DROP_RADIUS);
+    state.zones.forEach((z, i) => z.classList.toggle('field-zone-hot', i === hot));
+  });
+  const drop = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    node.classList.remove('field-dragging');
+    el.classList.remove('field-dragging-el');
+    state.zones.forEach((z) => z.classList.remove('field-zone-hot'));
+    const xy = stageXY(stage, e);
+    const i = nearest(pts, xy, DROP_RADIUS);
+    if (i === null) {
+      // Not near any spot: back to where it was.
+      glide(el, [xy, state.picked !== null ? pts[state.picked] : state.start], 250, reducedMotion());
+      return;
+    }
+    place(el, pts[i]);
+    onPick(i);
+  };
+  el.addEventListener('pointerup', drop);
+  el.addEventListener('pointercancel', drop);
+}
+
+/** Show what he's picked so far (called on every render, so it's safe to repeat). */
+function showPick(picked) {
+  const st = live?.ask;
+  if (!st || st.locked) return;
+  st.picked = picked ?? null;
+  st.zones.forEach((z, i) => z.classList.toggle('field-zone-picked', i === st.picked));
+  st.tapEls.forEach((a, i) => a?.classList.toggle('actor-picked', i === st.picked));
+  if (st.el && st.picked !== null) place(st.el, st.pts[st.picked]);
+}
+
+/** After Check: mark his pick right or wrong, and slide to the right spot if he missed. */
+async function revealAsk(picked) {
+  const st = live.ask;
+  st.locked = true;
+  live.node.classList.remove('field-asking');
+  st.el?.classList.remove('field-draggable');
+  const right = picked === 0;
+  st.zones.forEach((z, i) => {
+    z.classList.remove('field-zone-picked');
+    if (i === 0) z.classList.add('field-zone-right');
+    else if (i === picked) z.classList.add('field-zone-wrong');
+    else z.remove();
+  });
+  st.tapEls.forEach((a, i) => {
+    a?.classList.remove('actor-tappable', 'actor-picked');
+    if (i === 0) a?.classList.add('actor-answer');
+    else if (i === picked) a?.classList.add('actor-wrong-pick');
+  });
+  const fast = reducedMotion();
+  if (!right && st.el && picked !== null) await glide(st.el, [st.pts[picked], st.pts[0]], 650, fast);
+  if (!fast) await new Promise((r) => setTimeout(r, right ? 700 : 1100));
+  st.tapEls.forEach((a) => a?.classList.remove('actor-answer', 'actor-wrong-pick'));
+}
+
 async function runPlay(node, sit, play, fast) {
   const runId = (live.runId = (live.runId || 0) + 1);
   resetActors(node, sit);
@@ -303,7 +444,7 @@ function intro(node, sit) {
  * card (so tapping an answer doesn't restart anything), plays the intro when a card first
  * shows, and acts out the play once it's answered.
  */
-export function syncField(root, { sit, play, answered }) {
+export function syncField(root, { sit, play, answered, ask, targets, picked, onPick }) {
   const slot = root.querySelector('.field-card[data-field-key]');
   if (!slot) { live = null; return; }
   const key = slot.dataset.fieldKey;
@@ -316,10 +457,28 @@ export function syncField(root, { sit, play, answered }) {
       if (live?.node === slot && live.play) runPlay(slot, live.sit, live.play, false);
     });
     intro(slot, sit);
+    if (ask && !answered) {
+      // Let the players jog in, act out the moment of the decision (ask.setup), then hand over.
+      (async () => {
+        const fast = reducedMotion();
+        if (!fast) await new Promise((r) => setTimeout(r, 1100));
+        for (const step of ask.setup || []) {
+          if (live?.node !== slot) return;
+          await Promise.all((Array.isArray(step) ? step : [step]).map((a) => doAction(slot, a, sit, fast)));
+        }
+        if (live?.node !== slot) return;
+        setupAsk(slot, sit, ask, targets, onPick);
+        showPick(live.pendingPick);
+      })();
+    }
   }
+  live.pendingPick = picked;
   live.play = play;
-  if (answered && play && !live.played) {
-    live.played = true;
-    runPlay(live.node, sit, play, reducedMotion());
-  }
+  if (!answered) { showPick(picked); return; }
+  if (live.played) return;
+  live.played = true;
+  (async () => {
+    if (live.ask && !live.ask.locked) await revealAsk(picked);
+    if (play) runPlay(live.node, sit, play, reducedMotion());
+  })();
 }
