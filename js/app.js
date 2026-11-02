@@ -1403,6 +1403,7 @@ function checkIqAnswer() {
     iqLesson.cards.push(makeCard(iqState(), card.conceptId, card.variant));
   }
   saveIqLesson(iqLesson);
+  startExplainGate(`${correct ? '' : `The answer is: ${resolved.choices[resolved.answer]}`} ${conceptById(card.conceptId).why}`);
   playSound(correct ? 'right' : 'wrong');
 }
 
@@ -1488,6 +1489,35 @@ function bugHtml(sit) {
   return cells.length ? `<div class="bug">${cells.join('')}</div>` : '';
 }
 
+// After an answer, Continue stays locked until Skip has read the explanation, so it can't be
+// skipped without hearing why. Muted (or the voice can't play): it unlocks after roughly the
+// time it takes to read it. A lesson resumed mid-answer is never locked.
+let explainGate = { key: null, ready: true, ms: 0 };
+
+function cardKey(lesson) {
+  const card = lesson.cards[lesson.index];
+  return `${lesson.index}:${card.conceptId}:${card.variant}`;
+}
+
+function explainReady() {
+  return !iqLesson || explainGate.key !== cardKey(iqLesson) || explainGate.ready;
+}
+
+function openExplainGate(key) {
+  if (explainGate.key !== key || explainGate.ready) return;
+  explainGate.ready = true;
+  if (view === 'iqLesson') render();
+}
+
+function startExplainGate(text) {
+  const key = cardKey(iqLesson);
+  // ~2.6 words a second (Skip's pace), plus the pause before he starts.
+  const ms = Math.round(1200 + (text.split(/\s+/).length / 2.6) * 1000);
+  explainGate = { key, ready: false, ms };
+  setTimeout(() => { if (!voiceOn()) openExplainGate(key); }, ms);
+  setTimeout(() => openExplainGate(key), ms + 8000); // never stuck if the audio stalls
+}
+
 const RIGHT_LINES = ['Correct!', 'Nice read!', 'Heads up!', 'You knew it!', 'Smart play!'];
 const RIGHT_FACES = ['excited', 'laughing', 'wink', 'happy', 'cool'];
 
@@ -1549,7 +1579,9 @@ function renderIqLesson() {
           </div>
         </div>
       </div>
-      <button class="btn ${correct ? 'btn-correct' : 'btn-red'} btn-block" data-action="iq-next">${nextLabel}</button>
+      ${explainReady()
+    ? `<button class="btn ${correct ? 'btn-correct' : 'btn-red'} btn-block" data-action="iq-next">${nextLabel}</button>`
+    : `<button class="btn ${correct ? 'btn-correct' : 'btn-red'} btn-block btn-listening" disabled style="--listen:${explainGate.ms}ms" aria-label="Listen to Skip first">${icon('speaker')}<span>Listen to Skip…</span></button>`}
     </div></footer>`;
   }
 
@@ -1658,6 +1690,7 @@ function voiceContext() {
     correct,
     rightIndex: resolved.answer,
     resultLine,
+    onAnswerDone: () => openExplainGate(`${lesson.index}:${card.conceptId}:${card.variant}`),
   };
 }
 
@@ -1821,6 +1854,7 @@ function handleAction(action, value) {
       checkIqAnswer();
       break;
     case 'iq-next':
+      if (!explainReady()) return;
       nextIqCard();
       return;
     case 'iq-retry-save':

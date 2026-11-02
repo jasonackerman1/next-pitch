@@ -1464,3 +1464,31 @@ div.lvl-head { cursor: default; }
 .tour-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.2); transition: width 0.2s; }
 .tour-dot-on { width: 24px; background: var(--red); }
 .btn-sm { min-height: 40px; padding: 6px 14px; font-size: 1.05rem; }
+
+/* Continue while Skip reads the explanation: locked, with a fill that runs as he talks. */
+.btn.btn-listening,
+.btn.btn-listening:disabled {
+  position: relative;
+  overflow: hidden;
+  opacity: 1;
+  cursor: default;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  box-shadow: none;
+}
+.btn-listening > * { position: relative; z-index: 1; }
+.btn-listening svg { width: 18px; height: 18px; animation: listen-pulse 1s ease-in-out infinite; }
+.btn-listening::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 0;
+  background: rgba(255, 255, 255, 0.22);
+  animation: listen-fill var(--listen, 6s) linear forwards;
+}
+@keyframes listen-fill { to { width: 96%; } }
+@keyframes listen-pulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) {
+  .btn-listening::before, .btn-listening svg { animation: none; }
+}

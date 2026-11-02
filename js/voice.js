@@ -60,7 +60,7 @@ export function preload(keys) {
 }
 
 /** Play clip keys in order. Keys without a recording are skipped. */
-export function speak(keys, delay = 0) {
+export function speak(keys, delay = 0, onDone = null) {
   stopVoice();
   if (!voiceOn()) return;
   if (!audio) audio = new Audio();
@@ -72,7 +72,8 @@ export function speak(keys, delay = 0) {
   queue = keys.map((k) => VOICE[k]).filter(Boolean);
   queue.forEach((f) => load(f).catch(() => {}));
   const next = async () => {
-    if (my !== token || !queue.length) return;
+    if (my !== token) return;
+    if (!queue.length) { onDone?.(); return; }
     let url;
     try { url = await load(queue.shift()); } catch { next(); return; }
     if (my !== token) return;
@@ -86,14 +87,15 @@ export function speak(keys, delay = 0) {
 /**
  * Call after every render with what's on screen. Reads a card once when it appears, and the
  * answer once it's checked; re-renders of the same moment don't repeat anything.
- *   ctx: { key, conceptId, variant, order, tf, answered, correct, rightIndex, resultLine }
+ *   ctx: { key, conceptId, variant, order, tf, answered, correct, rightIndex, resultLine,
+ *          onAnswerDone } — onAnswerDone fires once Skip finishes reading the explanation.
  */
 export function syncVoice(ctx) {
   if (!ctx || !ctx.key) { if (lastKey) { stopVoice(); lastKey = null; } return; }
   const moment = `${ctx.key}:${ctx.answered ? 'a' : 'q'}`;
   if (moment === lastKey) return;
   lastKey = moment;
-  speak(ctx.answered ? answerKeys(ctx) : questionKeys(ctx), ctx.answered ? 450 : 250);
+  speak(ctx.answered ? answerKeys(ctx) : questionKeys(ctx), ctx.answered ? 450 : 250, ctx.answered ? ctx.onAnswerDone : null);
   if (!ctx.answered) preload([`line:${ctx.resultLine}`, 'line:out', 'line:answerIs', ...ctx.order.map((i) => choiceKey(ctx, i)), `${ctx.conceptId}:why`]);
 }
 
