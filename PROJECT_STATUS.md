@@ -1,5 +1,15 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
+## Progress you can see + a 1/3/5-day schedule + Fix my mistakes after every lesson (2026-11-03)
+
+Jay found "0 of 86 mastered" discouraging and couldn't tell what filled the dots. Changes:
+- **Bars count steps, not just mastered.** Each situation has 4 steps (box 1–4); unit tiles, the unit header, the home section head and Profile all show a percent of steps, plus ★N mastered.
+- **Named steps** on every situation row: New → Learned → Solid → Locked in → ★ Mastered. A one-line legend explains: right on the day it's due fills a bar, a miss takes away 2.
+- **Missed mark:** situations in `iq.missed` show a red "!" and "Missed · fix it."
+- **Schedule** `INTERVAL_DAYS = [0, 1, 3, 5, 10]`: a situation can be mastered on day 10 at the earliest (~2 weeks realistically). Jay's call: between "1 week" and "3 weeks," fast early wins for a 12-year-old but no burning through all 86. If it feels slow, try 1/2/4. A daily cap on new situations is the next lever against burn-through (none today). "What's after 101" is a future conversation.
+- **Fix my mistakes after every lesson with misses**, not only after three outs: red "Fix my mistakes (N)" button + "Later." N counts all unfixed misses.
+- `sw.js` cache v16. Tested with Playwright (progress screen, a lesson with 2 misses → Fix → 2-card review).
+
 ## Home screen matches the dashboard mockup's middle column (2026-11-02, later)
 
 Jay pointed at his web-dashboard mockup: the middle column (stats, continue card, colored progress tiles) never made it in. Rebuilt `renderIqHome`:

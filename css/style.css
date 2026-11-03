@@ -715,7 +715,14 @@ div.lvl-head { cursor: default; }
 .play-icon svg { width: 15px; height: 15px; }
 .play-gold .play-icon { background: var(--gold); border-color: var(--gold); color: #3a2a00; }
 .play-progress .play-icon { background: var(--unit, var(--red)); border-color: var(--unit, var(--red)); }
-.play-title { flex: 1; min-width: 0; font-weight: 600; font-size: 0.98rem; line-height: 1.25; }
+.play-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.play-title { font-weight: 600; font-size: 0.98rem; line-height: 1.25; }
+.play-step { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2); }
+.play-gold .play-step { color: var(--gold); }
+.play-missed .play-icon { background: var(--red); border-color: var(--red); font-weight: 900; font-size: 0.95rem; }
+.play-missed .play-step { color: #ff8a80; }
+.plays-legend { padding: 10px 14px; font-size: 0.82rem; line-height: 1.4; color: var(--text-2); border-top: 1px solid var(--border); }
+.plays-legend svg { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; color: var(--gold); }
 .play-todo .play-title { color: var(--text-2); }
 .pips { display: flex; gap: 3px; flex-shrink: 0; }
 .pip { width: 12px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.13); }
@@ -1759,6 +1766,10 @@ div.lvl-head { cursor: default; }
 .unit-tile-bar { width: 100%; height: 7px; border-radius: 99px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .unit-tile-bar span { display: block; height: 100%; border-radius: 99px; background: #ffffff; min-width: 4px; }
 .unit-tile-count { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; align-self: center; }
+.unit-tile-stars { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; color: var(--gold); }
+.unit-tile-stars svg { width: 12px; height: 12px; }
+.section-head svg { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; color: var(--gold); margin-right: 2px; }
+.section-head > span { white-space: nowrap; }
 .unit-hint { text-align: center; margin: 0; }
 @media (max-width: 640px) {
   .home-top { flex-direction: column; align-items: stretch; padding: 18px 16px 0; }

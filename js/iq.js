@@ -7,7 +7,9 @@
 //   and schedules the next review INTERVAL_DAYS[box] days out. Box 4 = mastered.
 //   A miss drops it two boxes and makes it due again right away.
 //   At most one box move per concept per day, so mastery can't be crammed in one sitting:
-//   it takes four correct answers spread over at least 11 days.
+//   it takes four correct answers spread over at least 9 days (days 1, 2, 5 and 10).
+//   Steps on screen: box 1 Learned, 2 Solid, 3 Locked in, 4 Mastered.
+//   Progress bars count boxes (4 per situation), so every step up moves them.
 //
 // Outs: every wrong answer in a normal lesson is an out. Three outs and the inning's over —
 // no new lessons until he fixes his mistakes (a review lesson) or a new day starts.
@@ -19,7 +21,7 @@ export const OUTS_PER_INNING = 3;
 export const MASTERED_BOX = 4;
 const MAX_NEW_PER_LESSON = 3;
 const MAX_REVIEW_CARDS = 8;
-const INTERVAL_DAYS = [0, 1, 3, 7, 14];
+const INTERVAL_DAYS = [0, 1, 3, 5, 10];
 const XP_CORRECT = 10;
 const XP_REVIEW_CORRECT = 5;
 const XP_LESSON_BONUS = 15;
@@ -106,6 +108,13 @@ export function resolveVariant(concept, variantIndex) {
   return { ...v, answer: 0, fixedOrder: false };
 }
 
+/** Steps earned toward mastery for one situation (0–4). */
+export function stepsFor(iq, conceptId) {
+  return Math.min(MASTERED_BOX, iq.concepts[conceptId]?.box || 0);
+}
+
+export const STEP_NAMES = ['Started', 'Learned', 'Solid', 'Locked in', 'Mastered'];
+
 function isMastered(iq, conceptId) {
   return (iq.concepts[conceptId]?.box || 0) >= MASTERED_BOX;
 }
@@ -118,12 +127,13 @@ export function unitStatuses(iq, today) {
     const total = unit.concepts.length;
     const introduced = unit.concepts.filter((c) => iq.concepts[c.id]).length;
     const mastered = unit.concepts.filter((c) => isMastered(iq, c.id)).length;
+    const steps = unit.concepts.reduce((sum, c) => sum + stepsFor(iq, c.id), 0);
     const released = !unit.releaseDate || unit.releaseDate <= today;
     let status;
     if (total === 0 || !released) status = 'coming';
     else if (mastered === total) status = 'mastered';
     else status = 'open';
-    return { unit, status, total, introduced, mastered };
+    return { unit, status, total, introduced, mastered, steps, maxSteps: total * MASTERED_BOX };
   });
 }
 
@@ -148,6 +158,8 @@ export function masteryTotals(iq) {
   return {
     mastered: all.filter((id) => isMastered(iq, id)).length,
     total: all.length,
+    steps: all.reduce((sum, id) => sum + stepsFor(iq, id), 0),
+    maxSteps: all.length * MASTERED_BOX,
     allUnitsWritten: IQ_UNITS.every((u) => u.concepts.length > 0),
   };
 }

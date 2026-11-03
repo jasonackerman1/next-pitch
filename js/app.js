@@ -6,7 +6,7 @@ import { PLAYS } from './iq-plays.js';
 import { fieldHtml, syncField } from './field.js';
 import { syncVoice, replayVoice, stopVoice, voiceOn, setVoiceOn, speak } from './voice.js';
 import {
-  OUTS_PER_INNING, MASTERED_BOX, RANKS, todayKey, normalizeIq, outsToday, rankFor, conceptById, resolveVariant,
+  OUTS_PER_INNING, MASTERED_BOX, STEP_NAMES, RANKS, todayKey, normalizeIq, outsToday, rankFor, conceptById, resolveVariant,
   unitStatuses, freshConceptIds, masteryTotals, makeCard, buildLesson, buildReviewLesson, applyLesson, displayStreak, weekPlayed,
 } from './iq.js';
 
@@ -888,8 +888,8 @@ function renderTour() {
   } else if (step === 3) {
     art = skipSvg('thinking', 'tour-head');
     title = 'Master it';
-    body = 'Get a situation right on different days to fill its 4 bars. No cramming. It has to stick. The same idea comes back worded differently, so know it, don\'t memorize it.';
-    extra = `<div class="tour-demo"><div class="play play-progress" style="--unit:#2fa84f"><span class="play-icon">${icon('check')}</span><span class="play-title">Hit the cutoff man</span><span class="pips"><span class="pip pip-on"></span><span class="pip pip-on"></span><span class="pip"></span><span class="pip"></span></span></div></div>`;
+    body = 'Get a situation right on the day it\'s due to fill a bar: Learned, Solid, Locked in, Mastered. No cramming. It has to stick. The same idea comes back worded differently, so know it, don\'t memorize it.';
+    extra = `<div class="tour-demo"><div class="play play-progress" style="--unit:#2fa84f"><span class="play-icon">${icon('check')}</span><span class="play-text"><span class="play-title">Hit the cutoff man</span><span class="play-step">Solid</span></span><span class="pips"><span class="pip pip-on"></span><span class="pip pip-on"></span><span class="pip"></span><span class="pip"></span></span></div></div>`;
   } else {
     art = poseImg('running', 'tour-pose');
     title = name ? `Let's go, ${escapeHtml(name)}!` : 'Let\'s go!';
@@ -1214,7 +1214,7 @@ function renderIqHome() {
       </div>
     </section>
     <div class="hide-wide">${streakCardHtml(n)}</div>
-    <div class="section-head"><span>My progress</span><span>${n.totals.mastered} of ${n.totals.total} mastered</span></div>
+    <div class="section-head"><span>My progress</span><span>${pctOf(n.totals.steps, n.totals.maxSteps)}% · ${icon('star')}${n.totals.mastered} mastered</span></div>
     <div class="unit-tiles">
       ${statuses.map((st) => unitTileHtml(st, selected?.unit.id === st.unit.id)).join('')}
     </div>
@@ -1228,9 +1228,9 @@ function renderIqHome() {
 let expandedUnit = null;
 
 /** One colored tile per unit on the home screen: icon, name, progress bar, mastered count. */
-function unitTileHtml({ unit, status, total, mastered }, selected) {
+function unitTileHtml({ unit, status, mastered, steps, maxSteps }, selected) {
   const style = unitStyle(unit);
-  const pct = total ? Math.round((mastered / total) * 100) : 0;
+  const pct = pctOf(steps, maxSteps);
   if (status === 'coming') {
     return `<div class="unit-tile unit-tile-coming" style="--unit:${style.color}">
       <div class="unit-tile-icon">${icon(style.icon)}</div>
@@ -1242,8 +1242,13 @@ function unitTileHtml({ unit, status, total, mastered }, selected) {
     <div class="unit-tile-icon">${icon(status === 'mastered' ? 'star' : style.icon)}</div>
     <div class="unit-tile-name">${escapeHtml(unit.title)}</div>
     <div class="unit-tile-bar"><span style="width:${pct}%"></span></div>
-    <div class="unit-tile-count">${mastered}/${total}</div>
+    <div class="unit-tile-count">${pct}%${mastered ? `<span class="unit-tile-stars">${icon('star')}${mastered}</span>` : ''}</div>
   </button>`;
+}
+
+/** Progress as a whole percent; bars count steps (4 per situation) so every step up moves them. */
+function pctOf(n, of) {
+  return of ? Math.round((n / of) * 100) : 0;
 }
 
 // Skip's line on the home screen, one a day. Original lines.
@@ -1260,13 +1265,13 @@ function skipQuote(today) {
   return SKIP_QUOTES[d % SKIP_QUOTES.length];
 }
 
-function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOver, forceOpen = false) {
-  const pct = total ? Math.round((mastered / total) * 100) : 0;
+function unitHtml({ unit, status, total, mastered, steps, maxSteps }, i, iq, currentId, inningOver, forceOpen = false) {
+  const pct = pctOf(steps, maxSteps);
   const style = unitStyle(unit);
   const sub = {
     coming: 'Coming soon',
     mastered: `All ${total} mastered`,
-    open: `${mastered}/${total} mastered · ${escapeHtml(unit.subtitle)}`,
+    open: `${pct}% · ${mastered}/${total} mastered · ${escapeHtml(unit.subtitle)}`,
   }[status];
   const hasCurrent = unit.concepts.some((c) => c.id === currentId);
   const expanded = forceOpen || ((status === 'open' || status === 'mastered') && (expandedUnit ? expandedUnit === unit.id : hasCurrent));
@@ -1285,13 +1290,16 @@ function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOve
   const current = hasCurrent ? 'lvl-current' : '';
   if (!expanded) return `<section class="lvl lvl-${status} ${current}" style="--unit:${style.color}">${head}</section>`;
 
-  // The open unit lists its situations ("plays"): pips show progress toward mastery.
+  // The open unit lists its situations ("plays"): the step name + pips show progress toward
+  // mastery, and a situation he missed (still waiting in Fix mistakes) is marked red.
   const plays = unit.concepts.map((c) => {
     const st = iq.concepts[c.id];
-    const box = st?.box ?? 0;
-    const kind = st && box >= MASTERED_BOX ? 'gold' : st ? 'progress' : 'todo';
+    const box = Math.min(MASTERED_BOX, st?.box ?? 0);
+    const missed = !!st && iq.missed.includes(c.id);
+    const kind = !st ? 'todo' : box >= MASTERED_BOX ? 'gold' : missed ? 'missed' : 'progress';
     const isCurrent = c.id === currentId && !iqLesson;
-    const glyph = kind === 'gold' ? icon('star') : kind === 'progress' ? icon('check') : '';
+    const glyph = kind === 'gold' ? icon('star') : kind === 'missed' ? '!' : kind === 'progress' ? icon('check') : '';
+    const step = !st ? 'New' : missed ? 'Missed · fix it' : STEP_NAMES[box];
     let pips = '';
     for (let k = 0; k < MASTERED_BOX; k++) pips += `<span class="pip ${k < box ? 'pip-on' : ''}"></span>`;
     const flag = isCurrent
@@ -1300,12 +1308,13 @@ function unitHtml({ unit, status, total, mastered }, i, iq, currentId, inningOve
     return `
       <button class="play play-${kind} ${isCurrent ? 'play-current' : ''}" data-action="iq-node" data-value="${kind}" aria-label="${escapeHtml(c.title)}">
         <span class="play-icon">${glyph}</span>
-        <span class="play-title">${escapeHtml(c.title)}</span>
+        <span class="play-text"><span class="play-title">${escapeHtml(c.title)}</span><span class="play-step">${step}</span></span>
         ${flag}
       </button>
     `;
   }).join('');
-  return `<section class="lvl lvl-${status} ${current} lvl-expanded" style="--unit:${style.color}">${head}<div class="plays">${plays}</div></section>`;
+  const legend = `<div class="plays-legend">Get a situation right on the day it's due to fill a bar: Learned, Solid, Locked in, ${icon('star')} Mastered. A miss takes away 2.</div>`;
+  return `<section class="lvl lvl-${status} ${current} lvl-expanded" style="--unit:${style.color}">${head}${legend}<div class="plays">${plays}</div></section>`;
 }
 
 // ---------- game iq: rewards + me ----------
@@ -1395,7 +1404,7 @@ function renderIqMe() {
       <div class="stat-tile"><span class="stat-ico" style="color:#4f8cff">${icon('gem')}</span><div class="stat-num">${n.iq.xp}</div><div class="stat-label">XP</div></div>
       <div class="stat-tile"><span class="stat-ico" style="color:var(--gold)">${icon('shield')}</span><div class="stat-num stat-num-sm">${escapeHtml(n.rank.title)}</div><div class="stat-label">Rank</div></div>
     </div>
-    <div class="section-head"><span>Skill progress</span><span>${n.totals.mastered}/${n.totals.total}</span></div>
+    <div class="section-head"><span>Skill progress</span><span>${pctOf(n.totals.steps, n.totals.maxSteps)}%</span></div>
     <div class="card">
       ${statuses.filter((s) => s.total > 0).map((s) => {
         const st = unitStyle(s.unit);
@@ -1403,8 +1412,8 @@ function renderIqMe() {
           <div class="skill-row">
             <span class="skill-ico" style="background:${st.color}">${icon(st.icon)}</span>
             <div class="skill-body">
-              <div class="skill-top"><span>${escapeHtml(s.unit.title)}</span><strong>${s.mastered}/${s.total}</strong></div>
-              ${barHtml(s.total ? Math.round((s.mastered / s.total) * 100) : 0, st.color)}
+              <div class="skill-top"><span>${escapeHtml(s.unit.title)}</span><strong>${pctOf(s.steps, s.maxSteps)}%</strong></div>
+              ${barHtml(pctOf(s.steps, s.maxSteps), st.color)}
             </div>
           </div>`;
       }).join('')}
@@ -1504,6 +1513,7 @@ async function finishIqLesson() {
       total: lesson.answers.length,
       xpEarned,
       streak: displayStreak(iqState(), today),
+      toFix: lesson.mode === 'play' ? iqState().missed.length : 0,
       ...milestones(before, iqState(), today),
     };
     clearIqLesson();
@@ -1743,7 +1753,9 @@ function renderIqResult() {
   } else {
     art = r.correct === r.total || r.rankUp || r.newBadges?.length ? poseImg('celebrate', 'result-pose') : poseImg('thumbsup', 'result-pose');
     title = r.correct === r.total ? 'Perfect lesson!' : 'Lesson complete!';
-    body = 'These come back later, worded differently. Know it, don\'t memorize it.';
+    body = r.toFix
+      ? 'Nice work. Now fix what you missed while it\'s fresh. That\'s how it sticks.'
+      : 'These come back later, worded differently. Know it, don\'t memorize it.';
   }
   return `
     <div class="focus result"><div class="focus-center"><div class="focus-center-inner">
@@ -1756,8 +1768,8 @@ function renderIqResult() {
         <div class="tile tile-blue">${icon('gem')}<div class="tile-value">+${r.xpEarned}</div><div class="tile-label">XP</div></div>
         <div class="tile tile-orange">${icon('flame')}<div class="tile-value">${r.streak}</div><div class="tile-label">Streak</div></div>
       </div>
-      ${!r.completed ? '<button class="btn btn-red btn-block" data-action="iq-start-review">Fix my mistakes</button>' : ''}
-      <button class="btn ${r.completed ? 'btn-red' : 'btn-ghost'} btn-block" data-action="nav" data-value="iqHome">${r.completed ? 'Continue' : 'Back home'}</button>
+      ${r.toFix ? `<button class="btn btn-red btn-block" data-action="iq-start-review">Fix my mistakes (${r.toFix})</button>` : ''}
+      <button class="btn ${r.toFix ? 'btn-ghost' : 'btn-red'} btn-block" data-action="nav" data-value="iqHome">${r.completed ? (r.toFix ? 'Later' : 'Continue') : 'Back home'}</button>
     </div></div></div>
   `;
 }
