@@ -1653,4 +1653,122 @@ export const PLAYS = {
     [{ field: '2B', to: 'R1', ms: 900 }, { run: 'B', to: 1, ms: 900 }],
     [{ out: 'YOU' }, { safe: 'B' }],
   ],
+  // u11 Hitter's IQ
+  'u11-first-pitch:0': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'shallowLF' }, { field: 'LF', to: 'shallowLF' }, { run: 'B', to: 1 }],
+    { say: 'First-pitch strike? Hit it!', who: 'B' },
+  ],
+  'u11-first-pitch:2': [
+    { ball: 'P', to: 'C' },
+    { say: 'In the dirt. Take it!', who: 'B' },
+    { say: 'Ball one.' },
+  ],
+  'u11-your-zone:0': [
+    { ball: 'P', to: 'C' },
+    { say: 'Not my pitch yet. Take.', who: 'B' },
+    { say: 'Strike one. Still early!' },
+  ],
+  'u11-your-zone:2': [
+    { say: '2-1: look for MY pitch', who: 'B' },
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'gapRC', fly: true }, { field: 'RF', to: 'gapRC' }, { field: 'CF', to: 'gapRC' }, { run: 'B', to: 2 }],
+  ],
+  'u11-oh-two:0': [
+    { ball: 'P', to: 'C' },
+    { say: 'Way off. Lay off!', who: 'B' },
+    { say: 'Ball one. Now it\'s 1-2.' },
+  ],
+  'u11-oh-two:2': [
+    { ball: 'P', to: 'C' },
+    { say: 'Just off the plate. No chase!', who: 'B' },
+    { say: 'He wanted you to chase.' },
+  ],
+  'u11-full-count:0': [
+    { run: 'R1', to: 'lead1' },
+    [{ ball: 'P', to: 'B' }, { run: 'R1', to: 'half12' }, { say: 'Two outs, 3-2: GO!', who: 'R1' }],
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'RF', to: 'shallowRF' }, { run: 'R1', to: 3 }, { run: 'B', to: 1 }],
+  ],
+  'u11-full-count:1': [
+    [{ ball: 'P', to: 'B' }, { run: 'R1', to: 'half12' }, { run: 'R2', to: 'half23' }],
+    [{ ball: 'B', to: 'foul1', fly: true }, { say: 'Too close. Protect!', who: 'B' }],
+    [{ run: 'R1', to: 'back' }, { run: 'R2', to: 'back' }, { say: 'Foul ball. Still alive!' }],
+  ],
+  'u11-runner-third:0': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'deepCF', fly: true }, { field: 'CF', to: 'deepCF' }],
+    { say: 'Caught. Tag up!', who: 'R3' },
+    [{ run: 'R3', to: 'home' }, { ball: 'CF', to: 'home' }],
+    { safe: 'R3' },
+  ],
+  'u11-runner-third:1': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'deepCF', fly: true }, { field: 'CF', to: 'deepCF' }],
+    { say: 'Caught. Tag up!', who: 'R3' },
+    [{ run: 'R3', to: 'home' }, { ball: 'CF', to: 'home' }],
+    { safe: 'R3' },
+  ],
+  'u11-runner-third:2': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'holeSS', roll: true }, { field: 'SS', to: 'holeSS' }, { field: '1B', to: 'b1' }, { run: 'R3', to: 'half3H' }, { run: 'B', to: 'half12' }],
+    [{ ball: 'SS', to: 'b1' }, { run: 'R3', to: 'home' }],
+    [{ out: 'B' }, { safe: 'R3' }, { say: 'Out at first, run scores!' }],
+  ],
+  'u11-move-runner:0': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'hole12', roll: true }, { field: '2B', to: 'hole12' }, { field: '1B', to: 'b1' }, { run: 'R2', to: 3 }, { run: 'B', to: 'half12' }],
+    { ball: '2B', to: 'b1' },
+    [{ out: 'B' }, { safe: 'R2' }, { say: 'Out, but he\'s on third!' }],
+  ],
+  'u11-move-runner:1': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'hole12', roll: true }, { field: '2B', to: 'hole12' }, { field: '1B', to: 'b1' }, { run: 'R2', to: 3 }, { run: 'B', to: 'half12' }],
+    { ball: '2B', to: 'b1' },
+    [{ out: 'B' }, { safe: 'R2' }, { say: 'Job done: runner on third!' }],
+  ],
+  'u11-infield-in:0': [
+    [{ field: 'SS', to: { x: 82, y: 92 } }, { field: '2B', to: { x: 118, y: 92 } }, { field: '3B', to: { x: 64, y: 112 } }, { field: '1B', to: { x: 136, y: 112 } }],
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'shallowLF', roll: true }, { field: 'LF', to: 'shallowLF' }, { run: 'R3', to: 'home' }, { run: 'B', to: 1 }],
+    [{ safe: 'R3' }, { say: 'Hit hard, right past them!' }],
+  ],
+  'u11-infield-in:2': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'deepLF', fly: true }, { field: 'LF', to: 'deepLF' }],
+    { say: 'Caught. Tag and go!', who: 'R3' },
+    [{ run: 'R3', to: 'home' }, { ball: 'LF', to: 'home' }],
+    { safe: 'R3' },
+  ],
+  'u11-make-him-work:0': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'foul3', fly: true }, { say: 'Foul ball number five!' }],
+    { say: 'Every pitch counts toward his limit.', who: 'B' },
+  ],
+  'u11-make-him-work:2': [
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'gapLC', fly: true }, { field: 'LF', to: 'gapLC' }, { field: 'CF', to: 'gapLC' }, { run: 'B', to: 2 }],
+    { say: 'Your pitch? Drive it!' },
+  ],
+  'u11-after-walks:0': [
+    { say: 'Make him throw a strike.', who: 'B' },
+    { ball: 'P', to: 'C' },
+    { say: 'Ball one. Still wild!' },
+  ],
+  'u11-pitch-smart:1': [
+    { say: 'Limit reached. He finishes you.' },
+    { ball: 'P', to: 'B' },
+    [{ ball: 'B', to: 'shallowRF', roll: true }, { field: 'RF', to: 'shallowRF' }, { run: 'B', to: 1 }],
+    { say: 'Now he comes out of the game.' },
+  ],
+  'u11-time-pitcher:0': [
+    { ball: 'P', to: 'C' },
+    { say: 'Swing along. Time him!', who: 'OD' },
+    { ball: 'C', to: 'P' },
+  ],
+  'u11-leadoff:0': [
+    { ball: 'P', to: 'C' },
+    { say: 'Ball four. I\'m on!', who: 'B' },
+    { run: 'B', to: 1 },
+    { safe: 'B' },
+  ],
 };

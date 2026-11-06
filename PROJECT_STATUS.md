@@ -1,5 +1,13 @@
 # Heads Up (formerly Next Pitch) — Project Status
 
+## Hitter's IQ unit + coach review spreadsheet (2026-11-06)
+
+- **New unit u11 "Hitter's IQ"** (shown after Count Smarts, pink, flame icon): 12 situations / 36 cards: first pitch, hunt your pitch, 0-2 don't chase, full count two outs, runner on third <2 outs, runner on second no outs (move him over), infield in, make the pitcher work, after back-to-back walks, Pitch Smart limits, time the pitcher, leading off. 2 drag-the-ball field questions. Plays + voice done (`check_plays` 288/288).
+- **Pitch limits:** GHVBL follows Pitch Smart; the rulebook's chart is an image, so 85/day for ages 11–12 comes from Pitch Smart (coachCheck). "Pitcher may finish the batter" is quoted from GHVBL rules.
+- **Coach review spreadsheet:** `coach-review/Heads-Up-Card-Review.xlsx`, one row per card (363), with Your call dropdown (Looks right / Reword it / Wrong) + notes, filters, and the 80 coach-question rows highlighted. Rebuild after any card change: `.venv/bin/python tools/make_review_sheet.py` (uses `tools/review_cards.mjs`; openpyxl installed in `.venv`). Replaces `game-iq-cards-review.md`, which is now out of date.
+- Recommended review process: coaches mark the spreadsheet (shared via OneDrive/Google Sheets, or split by unit); the app itself only for feel/animations. Returned file → drop in repo → Claude makes fixes.
+- `sw.js` cache v17.
+
 ## Progress you can see + a 1/3/5-day schedule + Fix my mistakes after every lesson (2026-11-03)
 
 Jay found "0 of 86 mastered" discouraging and couldn't tell what filled the dots. Changes:

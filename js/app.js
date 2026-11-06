@@ -996,6 +996,7 @@ const UNIT_STYLE = {
   u8: { color: '#e0a400', icon: 'bolt' },
   u9: { color: '#8b5cf6', icon: 'book' },
   u10: { color: '#64748b', icon: 'brain' },
+  u11: { color: '#db2777', icon: 'flame' },
 };
 function unitStyle(unit) {
   return UNIT_STYLE[unit.id] || { color: '#e6392d', icon: 'ball' };

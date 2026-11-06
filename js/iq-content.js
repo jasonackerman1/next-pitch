@@ -547,6 +547,290 @@ export const IQ_UNITS = [
     ],
   },
   {
+    id: 'u11',
+    title: 'Hitter\'s IQ',
+    subtitle: 'Approach & situational hitting',
+    concepts: [
+      {
+        id: 'u11-first-pitch',
+        title: 'Be ready on the first pitch',
+        source: 'fundamental',
+        coachCheck: 'Does the coach want hitters swinging at a good first-pitch strike, or taking first pitches in some spots?',
+        why: 'The first pitch is often a fastball for a strike. Be ready to hit it. If it\'s your pitch, swing. Taking it every time just hands the pitcher a free strike.',
+        variants: [
+          {
+            sit: { balls: 0, strikes: 0, outs: 1, you: 'batter' },
+            prompt: 'First pitch: a fastball right down the middle, right where you like it. What do you do?',
+            choices: ['Swing. Be ready to hit a good first pitch', 'Take it. Always take the first pitch', 'Square to bunt', 'Step out and call time'],
+          },
+          {
+            prompt: 'True or false: You should take the first pitch every time to see what the pitcher has.',
+            tf: false,
+          },
+          {
+            sit: { balls: 0, strikes: 0, outs: 0, you: 'batter' },
+            prompt: 'First pitch is a curveball way down in the dirt. What do you do?',
+            choices: ['Take it. Being ready doesn\'t mean swinging at a bad pitch', 'Swing. You said you\'d be ready', 'Bunt it', 'Swing to protect the plate'],
+          },
+        ],
+      },
+      {
+        id: 'u11-your-zone',
+        title: 'Hunt your pitch',
+        source: 'fundamental',
+        coachCheck: 'Some coaches teach 12U hitters to swing at any strike early in the count. Confirm this matches how he teaches it.',
+        why: 'Every hitter has a zone where he hits the ball hardest. Early in the count, look for a pitch in YOUR zone. With two strikes, your zone gets bigger and you protect the plate.',
+        variants: [
+          {
+            sit: { balls: 1, strikes: 0, outs: 1, you: 'batter' },
+            prompt: '1-0. You hit pitches over the middle best. This pitch is low on the outside corner. It\'s a strike, but not your pitch. What\'s the smart move?',
+            choices: ['Take it. Early in the count, wait for your pitch', 'Swing. It\'s a strike', 'Bunt it', 'Swing at anything from now on'],
+          },
+          {
+            prompt: 'When does your hitting zone get bigger?',
+            choices: ['With two strikes', 'On the first pitch', 'When you\'re ahead 2-0', 'Never'],
+          },
+          {
+            sit: { balls: 2, strikes: 1, outs: 0, you: 'batter' },
+            prompt: '2-1. The pitcher really needs a strike. What should you be thinking?',
+            choices: ['Look for my pitch and be ready to drive it', 'Take no matter what', 'Swing at anything', 'Get ready to bunt'],
+          },
+        ],
+      },
+      {
+        id: 'u11-oh-two',
+        title: '0-2: don\'t chase',
+        source: 'fundamental',
+        why: 'At 0-2 the pitcher doesn\'t need to throw a strike, so he often throws one just off the plate to get you to chase. Foul off pitches that are close, and lay off pitches that are way off the plate.',
+        variants: [
+          {
+            sit: { balls: 0, strikes: 2, outs: 1, you: 'batter' },
+            prompt: '0-2. The pitch is a foot outside, in the dirt. What do you do?',
+            choices: ['Lay off. It\'s way out of the zone', 'Swing. Two strikes means protect', 'Bunt it', 'Step out of the box'],
+          },
+          {
+            prompt: 'True or false: At 0-2, the pitcher has to throw a strike.',
+            tf: false,
+          },
+          {
+            sit: { balls: 0, strikes: 2, outs: 0, you: 'batter' },
+            prompt: '0-2. Why might the pitcher throw the next pitch just off the plate?',
+            choices: ['To get you to chase a bad pitch', 'He\'s getting tired', 'The umpire told him to', 'He wants to walk you'],
+          },
+        ],
+      },
+      {
+        id: 'u11-full-count',
+        title: 'Full count, two outs',
+        source: 'fundamental',
+        why: 'With two outs and a full count, a runner who is forced (like a runner on first) runs as soon as the pitcher throws home. Make the pitcher throw a strike, but swing at anything close. A walk or contact keeps the inning alive.',
+        variants: [
+          {
+            sit: { balls: 3, strikes: 2, outs: 2, runners: [1], you: 'batter' },
+            prompt: 'Full count, two outs, runner on first. When does the runner take off?',
+            choices: ['As soon as the pitcher throws home', 'Only if you hit the ball', 'After the catcher catches it', 'He stays on first'],
+          },
+          {
+            sit: { balls: 3, strikes: 2, outs: 2, runners: [1, 2], you: 'batter' },
+            prompt: 'Full count, two outs, runners on first and second. The pitch is just off the corner, close enough to be called a strike. What do you do?',
+            choices: ['Protect. Swing at anything that close', 'Take it and hope for ball four', 'Bunt it', 'Step out'],
+          },
+          {
+            prompt: 'True or false: With two outs, a full count and a runner on first, the runner goes on the pitch.',
+            tf: true,
+          },
+        ],
+      },
+      {
+        id: 'u11-runner-third',
+        title: 'Runner on third, less than two outs',
+        source: 'fundamental',
+        coachCheck: 'Whether the runner on third breaks on a ground ball depends on the coach\'s call. Confirm the ground-ball card.',
+        why: 'With a runner on third and less than two outs, your job is to get him home. A fly ball to the outfield lets him tag up and score. A ground ball to the middle, with the infield back, usually scores him too. The worst thing you can do is strike out or pop up in the infield.',
+        variants: [
+          {
+            sit: { balls: 1, strikes: 1, outs: 1, runners: [3], you: 'batter' },
+            prompt: 'Runner on third, one out. Which result is the WORST for your team?',
+            choices: ['Striking out', 'A deep fly ball to center field', 'A ground ball to second with the infield back', 'A walk'],
+          },
+          {
+            sit: { balls: 1, strikes: 0, outs: 0, runners: [3], you: 'batter' },
+            prompt: 'Runner on third, no outs, infield playing back. Drag the ball to where you want to hit it to score him.',
+            ask: { drag: 'ball', from: 'B', setup: [{ ball: 'P', to: 'B' }] },
+            targets: [
+              { at: 'deepCF', label: 'A deep fly ball to the outfield' },
+              { at: 'upMiddle', label: 'A pop-up in the infield' },
+              { at: 'foul3', label: 'A foul pop-up by third' },
+            ],
+          },
+          {
+            sit: { balls: 2, strikes: 1, outs: 0, runners: [3], you: 'batter' },
+            prompt: 'Runner on third, no outs, infield playing back. You hit a ground ball to the shortstop. What usually happens?',
+            choices: ['The runner scores while they throw you out at first', 'The runner is out at home', 'It\'s a double play', 'Nobody moves'],
+          },
+        ],
+      },
+      {
+        id: 'u11-move-runner',
+        title: 'Runner on second, no outs',
+        source: 'fundamental',
+        coachCheck: 'Does the coach want 12U hitters trying to hit to the right side here, or just hit the ball hard?',
+        why: 'With a runner on second and nobody out, a ground ball to the right side moves him to third, where he can score on a fly ball or a ground ball. Even if you\'re out, you did your job. A ground ball to the left side lets the shortstop or third baseman hold him at second.',
+        variants: [
+          {
+            sit: { balls: 1, strikes: 0, outs: 0, runners: [2], you: 'batter' },
+            prompt: 'Runner on second, no outs. Drag the ball to where a ground ball moves him to third.',
+            ask: { drag: 'ball', from: 'B', setup: [{ ball: 'P', to: 'B' }] },
+            targets: [
+              { at: 'hole12', label: 'On the ground to the right side' },
+              { at: 'holeSS', label: 'On the ground to the shortstop' },
+              { at: 'LF', label: 'A fly ball to left' },
+            ],
+          },
+          {
+            sit: { balls: 1, strikes: 0, outs: 0, runners: [2], you: 'batter' },
+            prompt: 'Runner on second, no outs. You ground out to the second baseman, and the runner goes to third. Was that a good at-bat?',
+            choices: ['Yes. You moved him to third with less than two outs', 'No. You made an out', 'Only if he scores', 'No. You should have bunted'],
+          },
+          {
+            prompt: 'True or false: A ground ball to the shortstop is the best way to move a runner from second to third.',
+            tf: false,
+          },
+        ],
+      },
+      {
+        id: 'u11-infield-in',
+        title: 'Infield in',
+        source: 'fundamental',
+        why: 'When the infield moves in to stop a run at home, they have less time to react. A hard ground ball or line drive gets through more often. Hit it hard. A fly ball to the outfield still scores the runner from third.',
+        variants: [
+          {
+            sit: { balls: 1, strikes: 1, outs: 0, runners: [3], you: 'batter' },
+            prompt: 'Runner on third, no outs. The infielders move in so they can throw home. What kind of hit beats them?',
+            choices: ['A hard ground ball or line drive past them', 'A soft roller to the shortstop', 'A pop-up to second', 'A slow bunt to the pitcher'],
+          },
+          {
+            prompt: 'True or false: A ground ball that would be an easy out with the infield back can get through when the infield plays in.',
+            tf: true,
+          },
+          {
+            sit: { balls: 0, strikes: 0, outs: 1, runners: [3], you: 'batter' },
+            prompt: 'One out, runner on third, infield in. You hit a high fly ball to deep left field and it\'s caught. What happens?',
+            choices: ['The runner tags up and can score after the catch', 'The runner is out too', 'He scores before the catch', 'Nothing. The inning is over'],
+          },
+        ],
+      },
+      {
+        id: 'u11-make-him-work',
+        title: 'Make the pitcher work',
+        source: 'fundamental',
+        why: 'Every pitch counts toward the pitcher\'s limit. Fouling off tough pitches and laying off balls makes him throw more, wears him down, and can get him out of the game sooner. But working the count never means taking a pitch you can drive.',
+        variants: [
+          {
+            sit: { balls: 2, strikes: 2, outs: 1, you: 'batter' },
+            prompt: '2-2. You\'ve fouled off four tough pitches in a row. Is that helping your team?',
+            choices: ['Yes. He\'s throwing more pitches and you\'re still alive', 'No. Foul balls don\'t count', 'Only if you get a hit', 'No. It warms him up'],
+          },
+          {
+            prompt: 'Your league has pitch limits. What can happen when a pitcher throws a lot of pitches early in the game?',
+            choices: ['He may have to come out of the game sooner', 'Nothing. Limits are per season', 'He gets extra innings', 'Your team loses a strike'],
+          },
+          {
+            sit: { balls: 2, strikes: 0, outs: 0, you: 'batter' },
+            prompt: '2-0, and the pitcher has already thrown 60 pitches. Here comes a fastball right down the middle. What do you do?',
+            choices: ['Swing. Working the count doesn\'t mean taking your pitch', 'Take it to raise his pitch count', 'Bunt it', 'Step out'],
+          },
+        ],
+      },
+      {
+        id: 'u11-after-walks',
+        title: 'He just walked two in a row',
+        source: 'fundamental',
+        coachCheck: 'Many coaches have hitters take a strike after back-to-back walks. Confirm the coach\'s rule, or whether he gives a take sign.',
+        why: 'When a pitcher just walked a batter or two, he\'s struggling to throw strikes. Many coaches want you to make him throw a strike before you swing. Watch for the take sign, and don\'t help him by chasing.',
+        variants: [
+          {
+            sit: { balls: 0, strikes: 0, outs: 1, runners: [1, 2], you: 'batter' },
+            prompt: 'The pitcher just walked two batters in a row. You\'re up, first pitch. What\'s the usual smart move?',
+            choices: ['Make him throw a strike. Take unless the coach says swing', 'Swing at the first pitch no matter what', 'Bunt', 'Swing at anything close'],
+          },
+          {
+            prompt: 'True or false: A batter who chases bad pitches helps a pitcher who can\'t find the strike zone.',
+            tf: true,
+          },
+          {
+            prompt: 'Why does taking a pitch make sense after back-to-back walks?',
+            choices: ['He\'s having trouble throwing strikes, so don\'t bail him out', 'The umpire is tired', 'It\'s against the rules to swing', 'So the runners can rest'],
+          },
+        ],
+      },
+      {
+        id: 'u11-pitch-smart',
+        title: 'Pitch limits',
+        source: 'ghvbl',
+        coachCheck: 'GHVBL follows Pitch Smart, but the rulebook\'s limit chart is a picture. 85 is Pitch Smart\'s daily max for ages 11 to 12. Confirm.',
+        why: 'Your league follows Pitch Smart, a safety rule that protects young arms. For 11- and 12-year-olds the daily max is 85 pitches. If a pitcher reaches his limit in the middle of an at-bat, he may finish that batter, then he comes out.',
+        variants: [
+          {
+            prompt: 'Your league follows Pitch Smart. What\'s the most pitches an 11- or 12-year-old can throw in a day?',
+            choices: ['85', '50', '120', 'There\'s no limit'],
+          },
+          {
+            sit: { balls: 1, strikes: 1, outs: 1, you: 'batter' },
+            prompt: 'The pitcher reaches his pitch limit in the middle of your at-bat. What happens?',
+            choices: ['He can finish pitching to you, then he comes out', 'He has to leave right now, in the middle of the count', 'Your count goes back to 0-0', 'You get a free walk'],
+          },
+          {
+            prompt: 'True or false: Pitch limits are a safety rule to protect young pitchers\' arms.',
+            tf: true,
+          },
+        ],
+      },
+      {
+        id: 'u11-time-pitcher',
+        title: 'Time the pitcher',
+        source: 'fundamental',
+        why: 'Your at-bat starts before you step in. From the dugout or the on-deck area, time his fastball by swinging along with his pitches, and watch what he throws when he\'s ahead. Then you\'re not seeing him for the first time.',
+        variants: [
+          {
+            sit: { balls: 0, strikes: 0, outs: 1, you: 'onDeck' },
+            prompt: 'You\'re on deck in the fenced-in on-deck area. What\'s the best use of this time?',
+            choices: ['Time his fastball. Swing along with his pitches', 'Wave to your family', 'Practice your bunt grip only', 'Check the scoreboard'],
+          },
+          {
+            prompt: 'The pitcher has thrown a change-up every time he gets ahead 0-1. You\'re up and it\'s 0-1. What should you be ready for?',
+            choices: ['A change-up. Stay back and wait on it', 'A fastball for sure', 'A pitchout', 'Nothing. It\'s random'],
+          },
+          {
+            prompt: 'True or false: Watching the pitcher from the dugout can help your at-bat before you ever step in.',
+            tf: true,
+          },
+        ],
+      },
+      {
+        id: 'u11-leadoff',
+        title: 'Leading off the inning',
+        source: 'fundamental',
+        why: 'Leading off, your job is to get on base any way you can: a hit, a walk, a hit by pitch or an error. An inning that starts with a runner on base scores a lot more often than one that starts with an out.',
+        variants: [
+          {
+            sit: { balls: 3, strikes: 1, outs: 0, you: 'batter' },
+            prompt: 'You\'re leading off the inning. 3-1, and the pitch is a little outside. What do you do?',
+            choices: ['Take it. A walk is a great way to start the inning', 'Swing. Leadoff hitters swing', 'Bunt it', 'Swing to protect the plate'],
+          },
+          {
+            prompt: 'What\'s the leadoff hitter\'s main job?',
+            choices: ['Get on base', 'Hit a home run', 'Bunt', 'Strike out swinging, not looking'],
+          },
+          {
+            prompt: 'True or false: Leading off an inning, a walk is almost as good as a single.',
+            tf: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: 'u3',
     title: 'Outfield',
     subtitle: 'Left, center & right',
